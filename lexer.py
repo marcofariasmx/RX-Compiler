@@ -17,12 +17,15 @@ class MyLexer(object):
             'read': 'READ',
             'float': 'FLOAT',
             'char': 'CHAR',
+            'bool': 'BOOL',
             'return': 'RETURN',
             'main': 'MAIN',
             'void': 'VOID',
             'func': 'FUNC',
             'to': 'TO',
-            'print': 'PRINT'
+            'print': 'PRINT',
+            'True' : 'TRUE',
+            'False' : 'FALSE'
     }
 
     # Tokens based on the parser
@@ -30,7 +33,7 @@ class MyLexer(object):
     tokens = ['SEMICOLON', 'LEFTBRACKET', 'RIGHTBRACKET', 'GREATER', 'LESS', 'NOTEQUAL', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
             'LEFTPAREN', 'RIGHTPAREN', 'ID', 'CTE_I', 'CTE_F', 'CTE_CH', 'COLON', 'ASSIGNMENT', 'CTE_STRING', 'COMMA', 'PROGRAM', 'PRINT',
             'IF', 'FOR', 'ELSE', 'VARS', 'INT', 'FLOAT', 'CHAR', 'RIGHTSQBRACKET', 'LEFTSQBRACKET', 'MAIN', 'BODY', 'TYPE_SIMPLE',
-            'VARIABLE', 'BODY_RETURN', 'PARAMS', 'CALL', 'READ', 'EQUAL', 'FUNC', 'VOID', 'RETURN', 'TO', 'WHILE']
+            'VARIABLE', 'BODY_RETURN', 'PARAMS', 'CALL', 'READ', 'EQUAL', 'FUNC', 'VOID', 'RETURN', 'TO', 'WHILE', 'OR', 'AND', 'BOOL', 'TRUE', 'FALSE']
 
     # Regular expressions
 
@@ -53,6 +56,9 @@ class MyLexer(object):
     t_COMMA = r'\,'
     t_RIGHTSQBRACKET = r'\]'
     t_LEFTSQBRACKET = r'\['
+    t_OR = r'\|'
+    t_AND = r'\&'
+
     # A string containing ignored characters (spaces and tabs)
     t_ignore  = ' \t'
 
@@ -66,14 +72,12 @@ class MyLexer(object):
             t.type = self.keywords.get(t.value, 'ID')
         return t
 
-
     # Define a float number
     def t_CTE_F(self,t):
-        r'[0-9]*\.[0-9]+|[0-9]+'
+        r'[0-9]+(\.([0-9]+)?([eE][-+]?[0-9]+)?|[eE][-+]?[0-9]+)'
         t.value = float(t.value)
         return t
-
-
+    
     # Define a variable int
     def t_CTE_I(self,t):
         r'[1-9][0-9]*'
@@ -105,16 +109,17 @@ class MyLexer(object):
      
      # Test its output
     def test(self,data):
-        self.lexer.input(data)
-        self.lexer.lineno = 1
+        lexer = self.build()
+        lexer.input(data)
+        lexer.lineno = 1
         while True:
-            tok = self.lexer.token()
+            tok = lexer.token()
             if not tok: 
                 break
             print(tok)
 
     # Build the lexer
     def build(self,**kwargs):
-        self.lexer = lex.lex(module=self, **kwargs)
+        lexer = lex.lex(module=self, **kwargs)
         
-        return self.lexer
+        return lexer

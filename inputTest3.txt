@@ -14,25 +14,22 @@ main()
 {
     vars
         char char1;
-        int numero1;
-        
-    a = 5;
-    b = 2;
-    c = b;
-    d = 10.55;
-    e = a - b;
-    //c = x;
-    //c = noexiste;
-    letra = char1;
+
+    a1 = 5;
+    b1 = 2;
+    cX = b1;
     if (4 != 5 )
     {
-        b = a;
+        b2 = a2;
     }
     else
     {
-        c = a + b;
+        c1 = a3 + b3;
     }
 
-    print( a, b, c ) ;
-    print(a);
+    //vars
+    //    char char2;
+
+    print( a4, b4, c2 ) ;
+    print(a5);
 }

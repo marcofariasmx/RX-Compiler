@@ -3,19 +3,31 @@ import ply.yacc as yacc
 
 from lexer import MyLexer
 
+from FuncsDir_Vars_Table import FuncsDir_Vars_Table
+
 tokens = MyLexer.tokens
+
+#Create DirFunc
+dirTable = FuncsDir_Vars_Table()
 
 # Grammar declaration
 
 def p_program(p):
-    '''program  :  PROGRAM ID SEMICOLON program1 MAIN LEFTPAREN RIGHTPAREN body 
-       program1 :  program2 
-       program2 :  vars program3
-                |  empty
-       program3 :  functions program3 
-                |  empty
+    '''program      :  PROGRAM program_id SEMICOLON globalVars MAIN LEFTPAREN RIGHTPAREN body 
+       globalVars   :  vars globalFuncs
+                    |  empty
+       globalFuncs  :  functions globalFuncs globalVars
+                    |  empty
     '''
     p[0] = "COMPILED"
+
+def p_expression_program_id(p):
+        '''
+        program_id : ID
+        '''
+
+        #Add id-name and type program a DirFunc
+        dirTable.insertFunction(p[1], 'program', 1, None, None)
 
 
 def p_vars(p):
@@ -26,23 +38,37 @@ def p_vars(p):
                 |  variable COMMA vars1
     '''
 
+    #If current Func doesn’t have a VarTable then Create VarTable and link it to current Func
+    #if
+    #dirTable.insertVariable()
+    print("----VARS-----")
+    #print(type(p))
+    print(*p)
+
 def p_functions(p):
     ''' functions    :   FUNC functionType
         functionType :   type_simple ID LEFTPAREN params RIGHTPAREN body_return
                      |   VOID ID LEFTPAREN RIGHTPAREN body
     '''
+    print("-----FUNCTIONS------")
+    print(*p)
 
 def p_type_simple(p):
     ''' type_simple :   INT
                     |   FLOAT
                     |   CHAR
     '''
+    print("-----TYPE SIMPLE------")
+    print(*p)
     
 def p_variable(p):
     ''' variable    :   ID
                     |   ID LEFTSQBRACKET exp RIGHTSQBRACKET
                     |   ID LEFTSQBRACKET exp RIGHTSQBRACKET LEFTSQBRACKET exp RIGHTSQBRACKET
     '''
+
+    print("-----VARIABLE------")
+    print(*p)
 
 def p_params(p):
     ''' params  :   type_simple ID
@@ -161,8 +187,8 @@ if __name__ == '__main__':
             f = open(file, 'r')
             data = f.read()
             f.close()
-            if yacc.parse(data) == "COMPILED":
-                result = parser.parse(data)
+            result = parser.parse(data)
+            if result == "COMPILED":
                 lexer.test(data)
                 print("Valid input")
                 print(result)

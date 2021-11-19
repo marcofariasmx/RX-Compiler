@@ -1,0 +1,29 @@
+program test4;
+//error HERE if uncommented !
+//The purpose of this small program is to test addition, subtraction divition and multiplication and some boolean logic
+
+vars 
+    int A, B, C;
+
+main()
+{
+    vars
+        float D, E, F, G, H, I, J;
+        bool X, Y, Z;
+        
+    A = B + C * (D - E);
+    B = E - F;
+
+    if (B > H){
+        B = H + J;
+        //print(A+B*C);
+    }
+
+    X = True;
+
+    Y = A < D;
+
+    //Type mismatch errors:
+    //F = D - Z;
+    //F = Z;
+}
