@@ -23,6 +23,8 @@ class MyLexer(object):
             'void': 'VOID',
             'func': 'FUNC',
             'to': 'TO',
+            'do': 'DO',
+            'by': 'BY',
             'print': 'PRINT',
             'True' : 'TRUE',
             'False' : 'FALSE'
@@ -33,7 +35,7 @@ class MyLexer(object):
     tokens = ['SEMICOLON', 'LEFTBRACKET', 'RIGHTBRACKET', 'GREATER', 'LESS', 'NOTEQUAL', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
             'LEFTPAREN', 'RIGHTPAREN', 'ID', 'CTE_I', 'CTE_F', 'CTE_CH', 'COLON', 'ASSIGNMENT', 'CTE_STRING', 'COMMA', 'PROGRAM', 'PRINT',
             'IF', 'FOR', 'ELSE', 'VARS', 'INT', 'FLOAT', 'CHAR', 'RIGHTSQBRACKET', 'LEFTSQBRACKET', 'MAIN', 'BODY', 'TYPE_SIMPLE',
-            'VARIABLE', 'BODY_RETURN', 'PARAMS', 'CALL', 'READ', 'EQUAL', 'FUNC', 'VOID', 'RETURN', 'TO', 'WHILE', 'OR', 'AND', 'BOOL', 'TRUE', 'FALSE']
+            'VARIABLE', 'BODY_RETURN', 'PARAMS', 'CALL', 'READ', 'EQUAL', 'FUNC', 'VOID', 'RETURN', 'TO', 'DO', 'BY', 'WHILE', 'OR', 'AND', 'BOOL', 'TRUE', 'FALSE']
 
     # Regular expressions
 
@@ -74,13 +76,13 @@ class MyLexer(object):
 
     # Define a float number
     def t_CTE_F(self,t):
-        r'[0-9]+(\.([0-9]+)?([eE][-+]?[0-9]+)?|[eE][-+]?[0-9]+)'
+        r'(\-)?[0-9]+(\.([0-9]+)?([eE][-+]?[0-9]+)?|[eE][-+]?[0-9]+)'
         t.value = float(t.value)
         return t
     
     # Define a variable int
     def t_CTE_I(self,t):
-        r'[1-9][0-9]*'
+        r'(\-)?[1-9][0-9]*'
         t.value = int(t.value)
         return t
 

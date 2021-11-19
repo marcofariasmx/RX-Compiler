@@ -194,6 +194,7 @@ class MyParser(object):
         print("-----VARIABLE------")
         print(*p)
         self.varNames.append(p[1])
+        ####Esto puede tronar cuando sea una nano exp al depender de p[1], OJO AQUI!!!!!!!!
 
     def p_params(self, p):
         ''' params  :   type_simple ID
@@ -335,11 +336,80 @@ class MyParser(object):
         print(*p)
 
     def p_for(self, p):
-        '''for  :   FOR LEFTPAREN expression TO factor RIGHTPAREN body
+        '''for  :   FOR for_id_exists ASSIGNMENT for_expression1 TO for_expression2 by_optional DO body
         '''
 
         print("-----p_for------")
         print(*p)
+        #Check first if ID already exists in local vars, if exists then assign new value, if not, create a new variable
+        self.quads.forLoop_end()
+
+    def p_by_optional(self, p):
+        '''
+            by_optional :   BY expression
+                        |   empty
+        '''
+
+        if p[1]:
+            self.quads.forLoop_BySteps()
+
+    def p_for_expression1(self, p):
+        '''
+            for_expression1 :   expression
+        '''
+
+        #Push the operator assignment to assign the val of exp1 to the declared variable
+        self.quads.operator_push('=')
+        #GENERATE VC
+        self.quads.forLoop_VC()
+
+    def p_for_expression2(self, p):
+        '''
+            for_expression2 :   expression
+        '''
+        #GENERATE VF
+        self.quads.forLoop_VF()
+    
+    def p_for_id_exists(self, p):
+        '''
+            for_id_exists   :   variable
+        '''
+
+        #Check if variable to store exists locally in not yet saved function
+        localVarFound = False
+        for idx, varName in enumerate(self.declaredVars['name']):
+            if varName == self.varNames[0]:
+                #Before pushing to operands stack, validate type is numeric
+                if self.declaredVars['type'][idx] == 'int' or self.declaredVars['type'][idx] == 'float':
+                    self.quads.operand_push(self.declaredVars['name'][idx], self.declaredVars['type'][idx])
+                    self.varNames.clear()
+                    localVarFound = True
+                else:
+                    exitErrorText = 'Non valid type for for loop first expression: ' + self.declaredVars['type'][idx]
+                    sys.exit(exitErrorText)
+                break
+
+        
+        #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
+        varType = None
+        if not localVarFound:
+            varType = self.dirTable.getVarType_Global(self.varNames[0])
+        if not localVarFound and varType:
+            #Before pushing to operands stack, validate type is numeric
+            if varType == 'int' or varType == 'float':
+                self.quads.operand_push(self.varNames[0], varType)
+                self.varNames.clear()
+            else:
+                exitErrorText = 'Non valid type for for loop first expression: ' + varType
+                sys.exit(exitErrorText)
+        
+        #If variable was not found anywhere, store it
+        elif not localVarFound and not varType:
+            self.varType = 'float'
+            # self.varNames.append() done automatically on "variable"
+            self.quads.operand_push(self.varNames[0], self.varType)
+            self.storeDeclaredVars()
+
 
     def p_while(self, p):
         '''while  :   whileKeyword LEFTPAREN expression endWhileExp body

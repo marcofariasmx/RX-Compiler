@@ -1,0 +1,22 @@
+program test4;
+//error HERE if uncommented !
+//The purpose of this small program is to test addition, subtraction divition and multiplication and some boolean logic
+
+vars 
+    int A, B, C;
+
+main()
+{
+    vars
+        float D, E, F, G, H, I, J;
+        bool X, Y, Z;
+
+    A = 10;
+        
+   for K = 1 to -2*-2.5 by 1.5 do{
+       B = C - D;
+   }
+
+    X = True;
+
+}

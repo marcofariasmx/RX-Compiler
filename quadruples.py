@@ -15,6 +15,9 @@ class quadruples():
         self.operatorsStack = [] # +, -, *, /, >, <, etc
         self.operandsStack = {'operand': [], 'type': []} #operands: a, b, c.. types: int, char, bool...
 
+        self.forLoopControlVars = []
+        self.forLoopBySteps = []
+        
         self.result = 0
 
     def operand_push(self, operand, type):
@@ -163,6 +166,104 @@ class quadruples():
         self.counter +=1;
 
         self.fillQuad(end, self.counter)
+
+    
+    def forLoop_VC(self):
+
+        #self.quadruples['operator'].append('=')
+        #self.quadruples['operand1'].append(self.quadruples['result'][-1])
+        #self.quadruples['operand2'].append(None)
+        #self.quadruples['result'].append('VC')
+
+        #self.counter +=1;
+
+        self.forLoopControlVars.append(self.quadruples['result'][-1])
+
+    def forLoop_BySteps(self):
+        operand = self.operandsStack['operand'].pop()
+        operandType = self.operandsStack['type'].pop()
+
+        if operandType == 'float' or operandType == 'int':
+            #valid
+            pass
+        else:
+            exitErrorText = 'Non valid type for for loop third expression: ' + operandType
+            sys.exit(exitErrorText)
+
+        self.forLoopBySteps.append(operand)
+        
+
+    def forLoop_end(self):
+
+        if not self.forLoopBySteps: #if custom steps not declared, add default 1
+            
+            self.forLoopBySteps.append(1) ###will need to initialize this as global constant
+
+        controlVar = self.forLoopControlVars.pop()
+
+        self.result += 1
+        maskedResult = 'T' + str(self.result)
+        
+        self.quadruples['operator'].append('+')
+        self.quadruples['operand1'].append(controlVar)
+        self.quadruples['operand2'].append(self.forLoopBySteps.pop())
+        self.quadruples['result'].append(maskedResult)
+
+        self.counter +=1;
+
+        self.quadruples['operator'].append('=')
+        self.quadruples['operand1'].append(maskedResult)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(controlVar)
+
+        self.counter +=1;
+
+        retrn = self.jumpStack.pop()
+
+        self.quadruples['operator'].append('GOTO')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(retrn-1)
+
+        self.counter +=1;
+
+        self.fillQuad(retrn, self.counter)
+
+
+    def forLoop_VF(self):
+
+        operand = self.operandsStack['operand'].pop()
+        operandType = self.operandsStack['type'].pop()
+
+        if operandType == 'float' or operandType == 'int':
+            #valid
+            pass
+        else:
+            exitErrorText = 'Non valid type for for loop second expression: ' + operandType
+            sys.exit(exitErrorText)
+
+        self.result += 1
+        maskedResult = 'T' + str(self.result)
+
+        self.quadruples['operator'].append('<')
+        self.quadruples['operand1'].append(self.forLoopControlVars[0])
+        self.quadruples['operand2'].append(operand)
+        self.quadruples['result'].append(maskedResult)
+
+        self.counter +=1;
+
+        self.result += 1
+        maskedResult = 'T' + str(self.result)
+
+        self.quadruples['operator'].append('GotoF')
+        self.quadruples['operand1'].append(maskedResult)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append('__')
+
+        self.jumpStack.append(self.counter)
+
+        self.counter +=1;
+
 
         
 
