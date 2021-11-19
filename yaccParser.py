@@ -342,11 +342,32 @@ class MyParser(object):
         print(*p)
 
     def p_while(self, p):
-        '''while  :   WHILE LEFTPAREN expression RIGHTPAREN body
+        '''while  :   whileKeyword LEFTPAREN expression endWhileExp body
         '''
 
         print("-----p_while------")
         print(*p)
+
+        self.quads.endQuad_while()
+
+    def p_whileKeyword(self, p):
+        '''
+            whileKeyword    :   WHILE
+        '''
+        print("-----p_whileKeyword------")
+        print(*p)
+
+        self.quads.startQuad_while()
+
+    def p_endWhileExp(self, p):
+        '''
+            endWhileExp : RIGHTPAREN
+        '''
+
+        print("-----p_endWhileExp------")
+        print(*p)
+
+        self.quads.generateQuad_while()
 
     def p_expression(self, p):
         ''' expression  :   mili_exp expression2

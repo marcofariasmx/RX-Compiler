@@ -119,7 +119,52 @@ class quadruples():
         self.jumpStack.append(self.counter)
         self.counter +=1;
         
+    def startQuad_while(self):
+        print("######################startQuad_while")
+        self.jumpStack.append(self.counter)
 
+    def generateQuad_while(self):
+        print("######################generateQuad_while")
+        exp_type = self.operandsStack['type'].pop()
+        result = self.operandsStack['operand'].pop()
+
+        if exp_type != 'bool':
+
+            exitErrorText = " Error: Type mismatch in " + exp_type + ' ' + result
+            print(self.quadruples)
+            print()
+            sys.exit(exitErrorText)
+        
+        else:
+            
+            self.quadruples['operator'].append('GotoF')
+            self.quadruples['operand1'].append(result)
+            self.quadruples['operand2'].append(None)
+            self.quadruples['result'].append('__')
+
+            self.jumpStack.append(self.counter)
+
+        self.counter +=1;
+
+    def endQuad_while(self):
+        print("######################endQuad_while")
+        print(self.jumpStack)
+        end = self.jumpStack.pop()
+        retrn = self.jumpStack.pop()
+
+        print("*******end: ", end)
+        print("*******retrn: ", retrn)
+
+        self.quadruples['operator'].append('GOTO')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(retrn)
+
+        self.counter +=1;
+
+        self.fillQuad(end, self.counter)
+
+        
 
 
 
