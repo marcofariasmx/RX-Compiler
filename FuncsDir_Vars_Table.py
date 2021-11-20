@@ -1,7 +1,7 @@
 class FuncsDir_Vars_Table():
 
     def __init__(self) -> None:
-        self.FuncsDirectory = {'name': [], 'type': [], 'initDirection': [], 'size': [], 'parameters' : {'paramType': [], 'paramVarName': []}}
+        self.FuncsDirectory = {'name': [], 'type': [], 'initDirection': [], 'size': [], 'parameters' : {'paramType': [], 'paramIsArray': [], 'paramVarName': []}}
 
         self.VarsDirectory = {'name': [], 'type': [], 'ownerFunc': [], 'scope': [], 'isArray': []}
 
@@ -12,11 +12,13 @@ class FuncsDir_Vars_Table():
         self.FuncsDirectory['size'].append(size)
 
         if parameters:
-            for param in parameters:
-                self.FuncsDirectory['parameters']['paramType'].append(param['paramType'])
-                self.FuncsDirectory['parameters']['paramVarName'].append(param['paramVarName'])
+            for idx, paramType in enumerate(parameters['paramType']):
+                self.FuncsDirectory['parameters']['paramType'].append(paramType)
+                self.FuncsDirectory['parameters']['paramIsArray'].append(parameters['paramIsArray'][idx])
+                self.FuncsDirectory['parameters']['paramVarName'].append(parameters['paramVarName'][idx])
         else:
             self.FuncsDirectory['parameters']['paramType'].append(None)
+            self.FuncsDirectory['parameters']['paramIsArray'].append(None)
             self.FuncsDirectory['parameters']['paramVarName'].append(None)
 
         print(self.FuncsDirectory)

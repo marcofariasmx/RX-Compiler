@@ -1,0 +1,26 @@
+program simpleOps;
+
+vars 
+    int numIntGlob1, numIntGlob2, numIntGlob3;
+
+main()
+{
+    vars
+        float numFloatMain1, numFloatMain2, numFloatMain3; 
+
+    numIntGlob1 = 5;
+    numIntGlob2 = 2;
+    numIntGlob3 = numIntGlob1 + numIntGlob2;
+
+    numFloatMain1 = numIntGlob1 * numIntGlob2;
+    numFloatMain2 = numIntGlob1 / numIntGlob2;
+    numFloatMain3 = numIntGlob1 - 1.55;
+        
+   print(numIntGlob1);
+   print(numIntGlob2);
+   print(numIntGlob3);
+
+   print(numFloatMain1);
+   print(numFloatMain2);
+   print(numFloatMain3);
+}

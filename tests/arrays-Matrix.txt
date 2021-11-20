@@ -9,22 +9,22 @@ vars
     int Array1[10];
     float Matrix1[2][5];
 
-func void funcion1 (){
-    vars
-        float flt1, flt2;
-
-    flt1 = 10;
-    flt2 = flt1 * 10;
-}
-
-//func int suma2(int num1, int num2){
+//func void funcion1 (){
 //    vars
-//        int resultado;
-
-//    resultado = num1 + num2;
-
-//    return resultado
+//        float flt1, flt2;
+//
+//    flt1 = 10;
+//    flt2 = flt1 * 10;
 //}
+
+func int suma2(int num1, float num2){
+    vars
+        int resultado;
+
+    resultado = num1 + num2;
+
+    return resultado
+}
 
 main()
 {
@@ -35,5 +35,7 @@ main()
     //A = 10;
 
     X = True;
+
+    D = suma2(E*2, F);
 
 }

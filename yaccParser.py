@@ -4,6 +4,7 @@ from lexer import MyLexer
 from FuncsDir_Vars_Table import FuncsDir_Vars_Table
 from collections import defaultdict
 from quadruples import quadruples
+from copy import deepcopy
 
 class MyParser(object):
 
@@ -38,7 +39,23 @@ class MyParser(object):
         #Temp factors list.
         self.factors = defaultdict(list)
 
+        #Functions
+        self.functionType = ''
         self.functionsInitDir = []
+        self.functionName = ''
+        self.paramType = []
+
+        #Parameters
+        #self.parameters = {'parameters' : {'paramType': [], 'paramIsArray':[], 'paramVarName': []}
+        self.parameters = defaultdict(list)
+        self.paramTypeList = []
+        self.paramIsArrayList = []
+        self.paramNameList = []
+        self.paramNum = 0
+
+        #Calls to functions
+        self.callName = []
+        #self.callType = []
 
 
     #Helper functions
@@ -52,6 +69,12 @@ class MyParser(object):
         self.varNames.clear()
         self.varType = ''
 
+    def storeDeclaredParams(self):
+        for idx, paramName in enumerate(self.paramNameList):
+            self.declaredVars['name'].append(paramName)
+            self.declaredVars['type'].append(self.paramTypeList[idx])
+            self.declaredVars['isArray'].append(self.paramIsArrayList[idx])
+
     def insertVars(self):
         for idx, varName in enumerate(self.declaredVars['name']):
 
@@ -64,6 +87,16 @@ class MyParser(object):
 
             self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope, self.declaredVars['isArray'][idx])
         self.declaredVars.clear()
+    
+    def insert_FuncsAsGlobalVars(self, funcName, funcReturnType):
+        #Before insert earch for var id-name in current VarTable if found throw Error “Error: declaration of function: with the same name”
+        #if not, add var id-name and current-type to current VarTable
+        for idx, varInDir in enumerate(self.dirTable.VarsDirectory['name']):
+            if varInDir == funcName and self.dirTable.VarsDirectory['scope'][idx] == 'global':
+                exitErrorText = " Error: declaration of function: “" + funcName + '” ' 'with the same name as another global variable “' + varInDir + '”'
+                sys.exit(exitErrorText)
+
+        self.dirTable.insertVariable(funcName, funcReturnType, None, 'global', False) #If ownerFunc is None it means that it is a function type in the variables
 
     # Grammar declaration
 
@@ -99,9 +132,6 @@ class MyParser(object):
         '''
             main_keyword    : MAIN
         '''
-        #print("COUNTEEEEEEEEEEEEEEEEERRRRRRRR")
-        #print(self.quads.counter)
-        #print(self.dirTable.FuncsDirectory)
         self.functionsInitDir.append(self.quads.counter)
     
     def p_main_body(self, p):
@@ -184,16 +214,31 @@ class MyParser(object):
         '''
         print("-----FUNCTIONS------")
         print(*p)
+        self.quads.generate_endfunc_quad()
 
         #Add id-name and type program a DirFunc
-        self.dirTable.insertFunction(p[2], p[1], self.functionsInitDir.pop(), None, None)
-        self.ownerFunc = p[2]
+        if p[2] and p[1]:
+            self.dirTable.insertFunction(p[2], p[1], self.functionsInitDir.pop(), None, None)
+            self.ownerFunc = p[2]
+        elif p[1]:
+            self.dirTable.insertFunction(self.functionName, self.functionType, self.functionsInitDir.pop(), None, deepcopy(self.parameters))
+            self.ownerFunc = self.functionName
+            self.insert_FuncsAsGlobalVars(self.functionName, self.functionType)
+
+            print('self.parameters')
+            print(self.parameters)
+            self.paramNameList.clear()
+            self.paramTypeList.clear()
+            self.paramIsArrayList.clear()
+        
+        
     
     def p_function_id(self, p):
         '''
             function_id :   ID
         '''
         self.functionsInitDir.append(self.quads.counter)
+        self.functionName = p[1]
 
 
     def p_type_simple(self, p):
@@ -205,6 +250,8 @@ class MyParser(object):
         print("-----TYPE SIMPLE------")
         print(*p)
         self.varType = p[1]
+        self.functionType = p[1]
+        self.paramType.append(p[1])
         
     def p_variable(self, p):
         ''' variable    :   var_matrix
@@ -219,6 +266,9 @@ class MyParser(object):
         '''
             var_id  : ID
         '''
+        print('----- var_id  : ID------')
+        print(*p)
+
         self.varNames.append(p[1])
         self.varIsArray.append(False)
 
@@ -234,11 +284,24 @@ class MyParser(object):
         '''
         self.varIsArray[-1] = True
     
-
     def p_params(self, p):
-        ''' params  :   type_simple ID COMMA params
-                    |   type_simple ID 
         '''
+            params  :   params_body
+        '''
+        self.parameters['paramType'].append(self.paramTypeList)
+        self.parameters['paramIsArray'].append(self.paramIsArrayList)
+        self.parameters['paramVarName'].append(self.paramNameList)
+
+        self.storeDeclaredParams()
+
+    def p_params_body(self, p):
+        ''' params_body :   type_simple variable COMMA params_body
+                        |   type_simple variable
+        '''
+        #self.paramType is pushed in type_simple
+        self.paramTypeList.append(self.paramType.pop(0))
+        self.paramIsArrayList.append(self.varIsArray.pop(0))
+        self.paramNameList.append(self.varNames.pop(0))
         
     def p_body(self, p):
         ''' 
@@ -269,12 +332,59 @@ class MyParser(object):
         print(*p)
 
     def p_call(self, p):
-        ''' call    :   ID LEFTPAREN call1 RIGHTPAREN
-            call1   :   expression
-                    |   expression COMMA call1
+        ''' call    :   call_id LEFTPAREN call_params RIGHTPAREN
         '''
         print("-----p_call------")
         print(*p)
+        self.paramNum = 0
+        callName = self.callName.pop()
+        #Get call type
+        callFound = False
+        for idx, varName in enumerate(self.dirTable.VarsDirectory['name']):
+            if varName == callName and self.dirTable.VarsDirectory['ownerFunc'][idx] == None:
+                callType = self.dirTable.VarsDirectory['type'][idx]
+                callFound = True
+                break
+        
+        #if not callFound:
+        #    exitErrorText = 'No function with the name: ' + callName + ' found.'
+        #    sys.exit(exitErrorText)
+        if callFound:
+            self.quads.operand_push(callName, callType)
+        
+
+    def p_call_id(self, p):
+        '''
+            call_id : ID
+        '''
+        #Generate ERA in quads for call
+        self.quads.generate_era_quad(p[1])
+        self.callName.append(p[1])
+        print('-----p_call_id------')
+        print(*p)
+
+    def p_call_params(self, p):
+        '''
+            call_params :   multi_param 
+        '''
+        print('-----p_call_params kdfjalkfdjalkfjdsalkfja------')
+        print(*p)
+        self.quads.generate_GOSUB_quad(self.callName[-1])
+
+    def p_multi_param(self, p):
+        '''
+            multi_param :   single_param COMMA multi_param
+                        |   single_param   
+        '''
+
+    def p_single_param(self, p):
+        '''
+            single_param    :   expression
+        '''
+        print('-----single_param------')
+        print(*p)
+        self.paramNum += 1
+        self.quads.generate_params_quads(self.paramNum)
 
     def p_statute(self, p):
         '''statute  :   vars
@@ -305,13 +415,23 @@ class MyParser(object):
 
     def p_write(self, p):
         '''
-            write   :   PRINT LEFTPAREN write1 RIGHTPAREN SEMICOLON
-            write1  :   expression COMMA write1
-                    |   expression
+            write   :   PRINT LEFTPAREN write_body RIGHTPAREN SEMICOLON
         '''
 
         print("-----p_write------")
         print(*p)
+
+    def p_write_body(self, p):
+        '''
+            write_body  :   write_single COMMA write_body
+                        |   write_single
+        '''
+
+    def p_write_single(self, p):
+        '''
+            write_single    :   expression
+        '''
+        self.quads.generate_print_quad()
 
     def p_read(self, p):
         ''' read    :   READ LEFTPAREN read1 RIGHTPAREN SEMICOLON

@@ -270,6 +270,52 @@ class quadruples():
         self.jumpStack.append(self.counter)
 
         self.counter +=1;
+    
+    def generate_era_quad(self, id):
+        self.quadruples['operator'].append('ERA')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(id)
+
+        self.counter +=1;
+
+    def generate_params_quads(self, paramNum):
+            #if self.operandsStack['operand']:
+            self.quadruples['operator'].append('param')
+            self.quadruples['operand1'].append(self.operandsStack['operand'].pop())
+            self.quadruples['operand2'].append(None)
+            self.quadruples['result'].append('par'+str(paramNum))
+
+            self.counter +=1;
+
+            #self.operandsStack['operand'].pop(0)
+            self.operandsStack['type'].pop(0)
+
+    def generate_endfunc_quad(self):
+        self.quadruples['operator'].append('ENDFUNC')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(None)
+
+        self.counter +=1;
+
+    def generate_GOSUB_quad(self, funcID):
+        self.quadruples['operator'].append('GOSUB')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(funcID)
+
+        self.counter +=1;
+
+    def generate_print_quad(self):
+        self.quadruples['operator'].append('print')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(self.operandsStack['operand'].pop())
+
+        self.counter +=1;
+        
+
 
 
         
