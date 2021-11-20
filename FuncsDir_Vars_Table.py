@@ -3,7 +3,7 @@ class FuncsDir_Vars_Table():
     def __init__(self) -> None:
         self.FuncsDirectory = {'name': [], 'type': [], 'initDirection': [], 'size': [], 'parameters' : {'paramType': [], 'paramVarName': []}}
 
-        self.VarsDirectory = {'name': [], 'type': [], 'ownerFunc': [], 'scope': []}
+        self.VarsDirectory = {'name': [], 'type': [], 'ownerFunc': [], 'scope': [], 'isArray': []}
 
     def insertFunction(self, funcName, funcType, initDirection, size, parameters):
         self.FuncsDirectory['name'].append(funcName)
@@ -21,11 +21,12 @@ class FuncsDir_Vars_Table():
 
         print(self.FuncsDirectory)
     
-    def insertVariable(self, varName, varType, ownerFunc, scope):
+    def insertVariable(self, varName, varType, ownerFunc, scope, isArray):
         self.VarsDirectory['name'].append(varName)
         self.VarsDirectory['type'].append(varType)
         self.VarsDirectory['ownerFunc'].append(ownerFunc)
         self.VarsDirectory['scope'].append(scope)
+        self.VarsDirectory['isArray'].append(isArray)
 
         print(self.VarsDirectory)
 

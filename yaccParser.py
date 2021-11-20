@@ -23,6 +23,7 @@ class MyParser(object):
         #Create some helpers to store data
         self.varType = ''
         self.varNames = []
+        self.varIsArray = []
         #self.declaredVars = {'name': [], 'type': []}
         self.declaredVars = defaultdict(list)
         self.currScope = ''
@@ -45,6 +46,7 @@ class MyParser(object):
         for var in self.varNames:
             self.declaredVars['name'].append(var)
             self.declaredVars['type'].append(self.varType)
+            self.declaredVars['isArray'].append(self.varIsArray.pop(0))
         self.varNames.clear()
         self.varType = ''
 
@@ -58,7 +60,7 @@ class MyParser(object):
                     exitErrorText = " Error: multiple declaration of variable: “" + varName + '” ' 'in scope of “' + self.ownerFunc + '”'
                     sys.exit(exitErrorText)
 
-            self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope)
+            self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope, self.declaredVars['isArray'][idx])
         self.declaredVars.clear()
 
     # Grammar declaration
@@ -164,16 +166,6 @@ class MyParser(object):
             self.dirTable.insertFunction(p[2], p[1], 1, None, None)
             self.ownerFunc = p[2]
 
-    #MOMENTARILY UNUSED
-    def p_expression_function_id(self, p):
-        '''
-        function_id : ID
-        '''
-
-        #Add id-name and type program a DirFunc
-        print("-----function_id------")
-        print(*p)
-
 
     def p_type_simple(self, p):
         ''' type_simple :   INT
@@ -186,15 +178,33 @@ class MyParser(object):
         self.varType = p[1]
         
     def p_variable(self, p):
-        ''' variable    :   ID
-                        |   ID LEFTSQBRACKET nano_exp RIGHTSQBRACKET
-                        |   ID LEFTSQBRACKET nano_exp RIGHTSQBRACKET LEFTSQBRACKET nano_exp RIGHTSQBRACKET
+        ''' variable    :   var_matrix
+                        |   var_array
+                        |   var_id
         '''
-
         print("-----VARIABLE------")
         print(*p)
-        self.varNames.append(p[1])
         ####Esto puede tronar cuando sea una nano exp al depender de p[1], OJO AQUI!!!!!!!!
+
+    def p_var_id(self, p):
+        '''
+            var_id  : ID
+        '''
+        self.varNames.append(p[1])
+        self.varIsArray.append(False)
+
+    def p_var_matrix(self, p):
+        '''
+            var_matrix  :   var_id LEFTSQBRACKET nano_exp RIGHTSQBRACKET LEFTSQBRACKET nano_exp RIGHTSQBRACKET
+        '''
+        self.varIsArray[-1] = True
+
+    def p_var_array(self, p):
+        '''
+            var_array  :   var_id LEFTSQBRACKET nano_exp RIGHTSQBRACKET 
+        '''
+        self.varIsArray[-1] = True
+    
 
     def p_params(self, p):
         ''' params  :   type_simple ID
