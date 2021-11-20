@@ -20,6 +20,13 @@ class quadruples():
         
         self.result = 0
 
+        self.quadruples['operator'].append('GOTO')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append('main')
+
+        self.counter += 1
+
     def operand_push(self, operand, type):
         self.operandsStack['operand'].append(operand)
         self.operandsStack['type'].append(type)

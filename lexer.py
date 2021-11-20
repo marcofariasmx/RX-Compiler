@@ -69,7 +69,9 @@ class MyLexer(object):
 
     # Define an ID
     def t_ID(self,t):
-        r'[A-za-z]([A-za-z]|[0-9])*'
+        #r'[A-za-z]([A-za-z]|[0-9])*'
+        #r'[A-Za-z0-9]([A-Za-z0-9])*'
+        r'[A-Za-z]([A-Za-z0-9])*'
         if t.value in self.keywords:
             t.type = self.keywords.get(t.value, 'ID')
         return t

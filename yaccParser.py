@@ -38,6 +38,8 @@ class MyParser(object):
         #Temp factors list.
         self.factors = defaultdict(list)
 
+        self.functionsInitDir = []
+
 
     #Helper functions
     def storeDeclaredVars(self):
@@ -66,7 +68,7 @@ class MyParser(object):
     # Grammar declaration
 
     def p_program(self, p):
-        '''program      :  PROGRAM program_id SEMICOLON globalVars globalFuncs MAIN LEFTPAREN RIGHTPAREN body
+        '''program      :  PROGRAM program_id SEMICOLON globalVars globalFuncs main_keyword LEFTPAREN RIGHTPAREN main_body
         '''
 
         print("-----p_program------")
@@ -78,14 +80,37 @@ class MyParser(object):
         self.insertVars()
 
 
+        #print()
         print("AQUI VARNAMES!")
         print(self.varNames)
         print(self.varType)
         print('factors: ', self.factors)
 
+        print("FuncsDirectory:")
+        print(self.dirTable.FuncsDirectory)
+        print("VarsDirectory:")
+        print(self.dirTable.VarsDirectory)
+
         print("QUADRUPLES: ")
         for idx, operator in enumerate(self.quads.quadruples['operator']):
             print(idx+1, ', ', operator, ', ', self.quads.quadruples['operand1'][idx], ', ', self.quads.quadruples['operand2'][idx], ', ', self.quads.quadruples['result'][idx])
+
+    def p_main_keyword(self, p):
+        '''
+            main_keyword    : MAIN
+        '''
+        #print("COUNTEEEEEEEEEEEEEEEEERRRRRRRR")
+        #print(self.quads.counter)
+        #print(self.dirTable.FuncsDirectory)
+        self.functionsInitDir.append(self.quads.counter)
+    
+    def p_main_body(self, p):
+        '''
+            main_body   :   body
+        '''
+        mainInitDir = self.functionsInitDir.pop()
+        self.dirTable.insertFunction('main', 'void', mainInitDir, None, None)
+        self.quads.quadruples['result'][0] = str(mainInitDir) + ' (main)'
 
     def p_expression_program_id(self, p):
         '''
@@ -154,17 +179,21 @@ class MyParser(object):
         print(*p)
 
     def p_functions(self, p):
-        ''' functions    :   FUNC functionType
-            functionType :   type_simple ID LEFTPAREN params RIGHTPAREN body_return
-                         |   VOID ID LEFTPAREN RIGHTPAREN body
+        ''' functions    :   FUNC type_simple function_id LEFTPAREN params RIGHTPAREN body_return
+                         |   FUNC VOID function_id LEFTPAREN RIGHTPAREN body
         '''
         print("-----FUNCTIONS------")
         print(*p)
 
         #Add id-name and type program a DirFunc
-        if p[1] and p[2]:
-            self.dirTable.insertFunction(p[2], p[1], 1, None, None)
-            self.ownerFunc = p[2]
+        self.dirTable.insertFunction(p[2], p[1], self.functionsInitDir.pop(), None, None)
+        self.ownerFunc = p[2]
+    
+    def p_function_id(self, p):
+        '''
+            function_id :   ID
+        '''
+        self.functionsInitDir.append(self.quads.counter)
 
 
     def p_type_simple(self, p):
@@ -207,8 +236,8 @@ class MyParser(object):
     
 
     def p_params(self, p):
-        ''' params  :   type_simple ID
-                    |   type_simple ID COMMA params
+        ''' params  :   type_simple ID COMMA params
+                    |   type_simple ID 
         '''
         
     def p_body(self, p):

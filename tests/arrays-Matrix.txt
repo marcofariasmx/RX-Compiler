@@ -1,0 +1,39 @@
+program arraysMatrix;
+//error HERE if uncommented !
+//The purpose of this small program is to test addition, subtraction divition and multiplication and some boolean logic
+
+//vars 
+//    int A, B, C;
+
+vars 
+    int Array1[10];
+    float Matrix1[2][5];
+
+func void funcion1 (){
+    vars
+        float flt1, flt2;
+
+    flt1 = 10;
+    flt2 = flt1 * 10;
+}
+
+//func int suma2(int num1, int num2){
+//    vars
+//        int resultado;
+
+//    resultado = num1 + num2;
+
+//    return resultado
+//}
+
+main()
+{
+    vars
+        float D, E, F;
+        bool X, Y, Z;
+
+    //A = 10;
+
+    X = True;
+
+}
