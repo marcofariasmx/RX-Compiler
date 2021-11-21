@@ -1,0 +1,21 @@
+program simpleOps;
+
+main()
+{
+    vars
+        int numero1, numero2, resultado;
+
+    numero1 = 10;
+    numero2 = 20;
+    resultado = 0;
+
+    if (numero1 > numero2){
+        resultado = 1;
+    }
+    else {
+        resultado = 99;
+    }
+        
+   print(resultado);
+
+}

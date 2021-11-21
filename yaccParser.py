@@ -1,3 +1,4 @@
+from re import S
 import ply.yacc as yacc
 import sys
 from lexer import MyLexer
@@ -25,7 +26,7 @@ class MyParser(object):
         self.varType = ''
         self.varNames = []
         self.varIsArray = []
-        #self.declaredVars = {'name': [], 'type': []}
+        #self.declaredVars = {'name': [], 'type': [], 'isArray': [], 'memAddress': []}
         self.declaredVars = defaultdict(list)
         self.currScope = ''
         self.ownerFunc = ''
@@ -66,6 +67,10 @@ class MyParser(object):
             self.declaredVars['name'].append(var)
             self.declaredVars['type'].append(self.varType)
             self.declaredVars['isArray'].append(self.varIsArray.pop(0))
+
+            memAddress = self.quads.memory.allocateMem(self.currScope, self.varType, 1)
+            self.declaredVars['memAddress'].append(memAddress)
+
         self.varNames.clear()
         self.varType = ''
 
@@ -85,7 +90,7 @@ class MyParser(object):
                     exitErrorText = " Error: multiple declaration of variable: “" + varName + '” ' 'in scope of “' + self.ownerFunc + '”'
                     sys.exit(exitErrorText)
 
-            self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope, self.declaredVars['isArray'][idx])
+            self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope, self.declaredVars['isArray'][idx], self.declaredVars['memAddress'][idx])
         self.declaredVars.clear()
     
     def insert_FuncsAsGlobalVars(self, funcName, funcReturnType):
@@ -124,15 +129,30 @@ class MyParser(object):
         print("VarsDirectory:")
         print(self.dirTable.VarsDirectory)
 
+        print("MEMORY: ")
+        print("Global: ")
+        print(self.quads.memory.globalMem)
+        print("Local: ")
+        print(self.quads.memory.localMem)
+        print("Temporal: ")
+        print(self.quads.memory.tempMem)
+        print("Constant: ")
+        print(self.quads.memory.constMem)
+
         print("QUADRUPLES: ")
         for idx, operator in enumerate(self.quads.quadruples['operator']):
             print(idx+1, ', ', operator, ', ', self.quads.quadruples['operand1'][idx], ', ', self.quads.quadruples['operand2'][idx], ', ', self.quads.quadruples['result'][idx])
+
+        # After compilation is done, export obj containing the directory of functions & variables, quadruples and constants
+        self.quads.exportOBJ()
+        #self.quads.exportOBJ_HumanReadable()
 
     def p_main_keyword(self, p):
         '''
             main_keyword    : MAIN
         '''
         self.functionsInitDir.append(self.quads.counter)
+        self.currScope = 'local'
     
     def p_main_body(self, p):
         '''
@@ -140,7 +160,7 @@ class MyParser(object):
         '''
         mainInitDir = self.functionsInitDir.pop()
         self.dirTable.insertFunction('main', 'void', mainInitDir, None, None)
-        self.quads.quadruples['result'][0] = str(mainInitDir) + ' (main)'
+        self.quads.quadruples['result'][0] = mainInitDir #Redirect for main quadruple
 
     def p_expression_program_id(self, p):
         '''
@@ -150,6 +170,7 @@ class MyParser(object):
         print("-----p_expression_program_id------")
         print(*p)
         self.ownerFunc = p[1]
+        self.currScope = 'global'
 
         #Add id-name and type program a DirFunc
         self.dirTable.insertFunction(p[1], 'program', 1, None, None)
@@ -161,7 +182,7 @@ class MyParser(object):
         '''
         print("-----p_globalVars------")
         print(*p)
-        self.currScope = 'global'
+        #self.currScope = 'global'
         #*#*#*#*#
         self.insertVars()
 
@@ -172,7 +193,7 @@ class MyParser(object):
         '''
         print("-----p_globaFuncs------")
         print(*p)
-        self.currScope = 'local'
+        #self.currScope = 'local'
         self.insertVars()
 
     def p_vars(self, p):
@@ -239,6 +260,7 @@ class MyParser(object):
         '''
         self.functionsInitDir.append(self.quads.counter)
         self.functionName = p[1]
+        self.currScope = 'local'
 
 
     def p_type_simple(self, p):
@@ -540,7 +562,7 @@ class MyParser(object):
             if varName == self.varNames[0]:
                 #Before pushing to operands stack, validate type is numeric
                 if self.declaredVars['type'][idx] == 'int' or self.declaredVars['type'][idx] == 'float':
-                    self.quads.operand_push(self.declaredVars['name'][idx], self.declaredVars['type'][idx])
+                    self.quads.operand_push(self.declaredVars['memAddress'][idx], self.declaredVars['type'][idx])
                     self.varNames.clear()
                     localVarFound = True
                 else:
@@ -552,11 +574,11 @@ class MyParser(object):
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
-            varType = self.dirTable.getVarType_Global(self.varNames[0])
+            varType = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
             #Before pushing to operands stack, validate type is numeric
-            if varType == 'int' or varType == 'float':
-                self.quads.operand_push(self.varNames[0], varType)
+            if varType[0] == 'int' or varType[0] == 'float':
+                self.quads.operand_push(varType[1], varType[0]) #POTENTIAL ERROR HERE SINCE IT IS PUSHING the name varType[1], analize, also for if
                 self.varNames.clear()
             else:
                 exitErrorText = 'Non valid type for for loop first expression: ' + varType
@@ -667,8 +689,15 @@ class MyParser(object):
         '''
             factor_int   :   CTE_I
         '''
-
-        self.quads.operand_push(p[1], 'int')
+        
+        #Check first if constant already exists in constants table
+        memAddress = self.quads.memory.searchConstant('int', p[1])
+        #If it doesnt exists, create it and insert into it
+        if not memAddress:
+            memAddress = self.quads.memory.allocateMem('constant', 'int', 1)
+            self.quads.memory.insertIntoMem(memAddress, p[1])
+        
+        self.quads.operand_push(memAddress, 'int')
         print("-----p_factor_int------")
         print(*p)
 
@@ -677,7 +706,14 @@ class MyParser(object):
             factor_float   :   CTE_F
         '''
 
-        self.quads.operand_push(p[1], 'float')
+        #Check first if constant already exists in constants table
+        memAddress = self.quads.memory.searchConstant('float', p[1])
+        #If it doesnt exists, create it and insert into it
+        if not memAddress:
+            memAddress = self.quads.memory.allocateMem('constant', 'float', 1)
+            self.quads.memory.insertIntoMem(memAddress, p[1])
+
+        self.quads.operand_push(memAddress, 'float')
         print("-----p_factor_float------")
         print(*p)
 
@@ -709,7 +745,7 @@ class MyParser(object):
         localVarFound = False
         for idx, varName in enumerate(self.declaredVars['name']):
             if varName == self.varNames[0]:
-                self.quads.operand_push(self.declaredVars['name'][idx], self.declaredVars['type'][idx])
+                self.quads.operand_push(self.declaredVars['memAddress'][idx], self.declaredVars['type'][idx])
                 self.varNames.clear()
                 localVarFound = True
                 break
@@ -717,9 +753,9 @@ class MyParser(object):
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
-            varType = self.dirTable.getVarType_Global(self.varNames[0])
+            varType = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
-            self.quads.operand_push(self.varNames[0], varType)
+            self.quads.operand_push(varType[1], varType[0])
             self.varNames.clear()
         
         #If variable was not found anywhere, throw an error and exit

@@ -1,6 +1,6 @@
 class memory():
 
-    def __init__(self) -> None:
+    def __init__(self):
 
         #with current configuration, it is possible to store up to
         #1000 variables (0 -> 999) for each type for each scope
@@ -21,6 +21,9 @@ class memory():
         self.tempMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
         self.constMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
 
+        #Allocate number 1 as global constant (needed for default by step of foor loop)
+
+    
     def allocateMem(self, scope, type, memBlocksSize):
 
         baseAddress = 0
@@ -139,7 +142,13 @@ class memory():
         elif int(str(memAddress)[0]) == 4: #const type
             return  self.constMem[type]['value'][int(str(memAddress)[2:])]
             
-    
+    def searchConstant(self, type, valueToSearch):
+        for idx, value in enumerate(self.constMem[type]['value']):
+            if valueToSearch == value:
+                return  self.constMem[type]['memIndex'][idx]
+            else:
+                return None
+
     def test(self):
         #allocate
         print('baseAddress: ', self.allocateMem('global', 'int', 1))

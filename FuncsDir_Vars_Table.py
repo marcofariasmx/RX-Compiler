@@ -3,7 +3,7 @@ class FuncsDir_Vars_Table():
     def __init__(self) -> None:
         self.FuncsDirectory = {'name': [], 'type': [], 'initDirection': [], 'size': [], 'parameters' : {'paramType': [], 'paramIsArray': [], 'paramVarName': []}}
 
-        self.VarsDirectory = {'name': [], 'type': [], 'ownerFunc': [], 'scope': [], 'isArray': []}
+        self.VarsDirectory = {'name': [], 'type': [], 'ownerFunc': [], 'scope': [], 'isArray': [], 'memAddress': []}
 
     def insertFunction(self, funcName, funcType, initDirection, size, parameters):
         self.FuncsDirectory['name'].append(funcName)
@@ -23,24 +23,24 @@ class FuncsDir_Vars_Table():
 
         print(self.FuncsDirectory)
     
-    def insertVariable(self, varName, varType, ownerFunc, scope, isArray):
+    def insertVariable(self, varName, varType, ownerFunc, scope, isArray, memAddress):
         self.VarsDirectory['name'].append(varName)
         self.VarsDirectory['type'].append(varType)
         self.VarsDirectory['ownerFunc'].append(ownerFunc)
         self.VarsDirectory['scope'].append(scope)
         self.VarsDirectory['isArray'].append(isArray)
+        self.VarsDirectory['memAddress'].append(memAddress)
 
         print(self.VarsDirectory)
 
-    def getVarType_Global(self, varName):
+    def getVarTypeAndAddress_Global(self, varName):
+        typeAndAddress = []
         for idx, varInDir in enumerate(self.VarsDirectory['name']):
             if varInDir == varName:
                 if self.VarsDirectory['scope'][idx] == 'global':
-                    #print("PRUEBAAAAAAAAAAAAA")
-                    #print(self.VarsDirectory['name'][idx])
-                    #print(self.VarsDirectory['ownerFunc'][idx])
-                    #print(self.VarsDirectory['scope'][idx])
-                    return self.VarsDirectory['type'][idx]
+                    typeAndAddress.append(self.VarsDirectory['type'][idx])
+                    typeAndAddress.append(self.VarsDirectory['memAddress'][idx])
+                    return typeAndAddress
         
         return None
 

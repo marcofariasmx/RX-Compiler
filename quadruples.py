@@ -1,9 +1,13 @@
 from semantics import Semantic
+from memory import memory
 import sys
 
 class quadruples():
 
-    def __init__(self) -> None:
+    def __init__(self):
+
+        #Initialize memory
+        self.memory = memory()
 
         self.semantic = Semantic()
         
@@ -58,6 +62,9 @@ class quadruples():
             sys.exit(exitErrorText)
 
         if operatorType == '=':
+
+            #memAddress = self.memory.allocateMem('scope', result_Type, 1)
+
             self.quadruples['operator'].append(operator)
             self.quadruples['operand1'].append(rightOperand)
             self.quadruples['operand2'].append(None)
@@ -66,14 +73,15 @@ class quadruples():
         else: # + - * / > < >= <= == !=
             
             self.result += 1
-            maskedResult = 'T' + str(self.result)
+            #maskedResult = 'T' + str(self.result)
+            tempMemAddress = self.memory.allocateMem('temporal', result_Type, 1)
 
             self.quadruples['operator'].append(operator)
             self.quadruples['operand1'].append(leftOperand)
             self.quadruples['operand2'].append(rightOperand)
-            self.quadruples['result'].append(maskedResult)
+            self.quadruples['result'].append(tempMemAddress)
 
-            self.operandsStack['operand'].append(maskedResult)
+            self.operandsStack['operand'].append(tempMemAddress)
             self.operandsStack['type'].append(result_Type)
 
             #print("self.quadruples")
@@ -176,13 +184,6 @@ class quadruples():
 
     
     def forLoop_VC(self):
-
-        #self.quadruples['operator'].append('=')
-        #self.quadruples['operand1'].append(self.quadruples['result'][-1])
-        #self.quadruples['operand2'].append(None)
-        #self.quadruples['result'].append('VC')
-
-        #self.counter +=1;
 
         self.forLoopControlVars.append(self.quadruples['result'][-1])
 
@@ -314,6 +315,81 @@ class quadruples():
         self.quadruples['result'].append(self.operandsStack['operand'].pop())
 
         self.counter +=1;
+
+
+    def exportOBJ(self):
+
+        file = open("OBJ.txt", "w")
+
+        #Export memory
+        file.write('MEMORY-DUMP:\n')
+        for type in self.memory.constMem:
+            for idx, value in enumerate(self.memory.constMem[type]['value']):
+                line = str(self.memory.constMem[type]['memIndex'][idx]) + ' ' + str(value) + '\n'
+                file.write(line)
+
+        #Export quads
+        file.write('QUADS-DUMP:\n')
+        for idx, operator in enumerate(self.quadruples['operator']):
+            line = str(operator) + ' ' +str(self.quadruples['operand1'][idx]) + ' ' + str(self.quadruples['operand2'][idx]) + ' ' + str(self.quadruples['result'][idx]) + '\n'
+            file.write(line)
+
+        file.close()
+
+    def exportOBJ_HumanReadable(self):
+
+        def converter(memAddress):
+            newQuad = ''
+
+            print('BUUUUUUUUUUUUUUUUUG')
+            print(memAddress)
+
+            if memAddress == None:
+                return 'None'
+            elif memAddress < 1000:
+                return str(memAddress)
+
+            if int(str(memAddress)[1]) == 1: # int type
+                type = 'int'
+            elif int(str(memAddress)[1]) == 2: # float type
+                type = 'float'
+            elif int(str(memAddress)[1]) == 3: # char type
+                type = 'char'
+            elif int(str(memAddress)[1]) == 4: # bool type
+                type = 'bool'
+            elif int(str(memAddress)[1]) == 5: # pointer type
+                type = 'pointer'
+
+            if int(str(memAddress)[0]) == 1: #global type
+                newQuad = 'G-' + type + '-' + str(int(str(memAddress)[2:]))
+                return newQuad
+            elif int(str(memAddress)[0]) == 2: #local type
+                newQuad = 'L-' + type + '-' + str(int(str(memAddress)[2:]))
+                return newQuad
+            elif int(str(memAddress)[0]) == 3: #temp type
+                newQuad = 'T-' + type + '-' + str(int(str(memAddress)[2:]))
+                return newQuad
+            elif int(str(memAddress)[0]) == 4: #Constant type
+                newQuad = 'C-' + type + '-' + str(int(str(memAddress)[2:]))
+                return newQuad
+
+
+        file = open("OBJ-HumanReadable.txt", "w")
+
+        #Export memory
+        file.write('MEMORY-DUMP:\n')
+        for type in self.memory.constMem:
+            for idx, value in enumerate(self.memory.constMem[type]['value']):
+                line = converter(self.memory.constMem[type]['memIndex'][idx]) + ' ' + str(value) + '\n'
+                file.write(line)
+
+        #Export quads
+        file.write('QUADS-DUMP:\n')
+        for idx, operator in enumerate(self.quadruples['operator']):
+            line = str(operator) + ' ' +converter(self.quadruples['operand1'][idx]) + ' ' + converter(self.quadruples['operand2'][idx]) + ' ' + converter(self.quadruples['result'][idx]) + '\n'
+            file.write(line)
+
+        file.close()
         
 
 

@@ -84,7 +84,7 @@ class MyLexer(object):
     
     # Define a variable int
     def t_CTE_I(self,t):
-        r'(\-)?[1-9][0-9]*'
+        r'(\-)?[0-9][0-9]*'
         t.value = int(t.value)
         return t
 
