@@ -1,4 +1,4 @@
-program simpleFor;
+program simpleWhile;
 
 main()
 {
@@ -9,9 +9,10 @@ main()
     numero2 = 20;
     resultado = 0;
 
-    for indexF = 15 to 25 by 2 do{
+    while(numero1 < numero2){
         resultado = resultado + 1;
-        print(indexF);
+        numero1 = numero1 + 1;
+        print(resultado);
     }
         
    print(resultado);

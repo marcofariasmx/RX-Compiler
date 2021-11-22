@@ -1,0 +1,11 @@
+program simpleFunctionCall;
+
+func void funcPrint (){
+    print(123456789);
+}
+
+main()
+{
+    funcPrint();
+
+}

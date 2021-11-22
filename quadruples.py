@@ -38,6 +38,12 @@ class quadruples():
         print("Operands Stack: ")
         print(self.operandsStack)
 
+    def operand_pop(self):
+        operand = self.operandsStack['operand'].pop()
+        type = self.operandsStack['type'].pop()
+
+        return operand, type
+
     #When an operator is pushed, it triggers an action to generate a quadruple based on the previously pushed operands.
     def operator_push(self, operator):
         self.operatorsStack.append(operator)
@@ -51,7 +57,6 @@ class quadruples():
         rightType = self.operandsStack['type'].pop()
         leftOperand = self.operandsStack['operand'].pop()
         leftType = self.operandsStack['type'].pop()
-        
         
         operator = self.operatorsStack.pop(0)
 
@@ -205,22 +210,37 @@ class quadruples():
 
         if not self.forLoopBySteps: #if custom steps not declared, add default 1
             
-            self.forLoopBySteps.append(1) ###will need to initialize this as global constant
+            ###Insert a 1 as a global constant to use for default by steps in for loop
+            memAddres = self.memory.allocateMem('constant', 'int', 1)
+            self.memory.insertIntoMem(memAddres, 1)
+            self.forLoopBySteps.append(memAddres)
 
         controlVar = self.forLoopControlVars.pop()
 
         self.result += 1
-        maskedResult = 'T' + str(self.result)
+        #maskedResult = 'T' + str(self.result)
         
+
         self.quadruples['operator'].append('+')
         self.quadruples['operand1'].append(controlVar)
         self.quadruples['operand2'].append(self.forLoopBySteps.pop())
-        self.quadruples['result'].append(maskedResult)
+
+        print('BUUUUGSSSSSSSSSSS')
+        print(str(self.quadruples['operand1'][-1]))
+        print(str(self.quadruples['operand2'][-1]))
+        if str(self.quadruples['operand1'][-1])[1] == 2 or str(self.quadruples['operand2'][-1])[1] == 2:
+            memType = 'float'
+        else:
+            memType = 'int'
+        
+        tempMemAddress = self.memory.allocateMem('temporal', memType, 1)
+
+        self.quadruples['result'].append(tempMemAddress)
 
         self.counter +=1;
 
         self.quadruples['operator'].append('=')
-        self.quadruples['operand1'].append(maskedResult)
+        self.quadruples['operand1'].append(tempMemAddress)
         self.quadruples['operand2'].append(None)
         self.quadruples['result'].append(controlVar)
 
@@ -251,20 +271,23 @@ class quadruples():
             sys.exit(exitErrorText)
 
         self.result += 1
-        maskedResult = 'T' + str(self.result)
+        #maskedResult = 'T' + str(self.result)
 
         self.quadruples['operator'].append('<')
         self.quadruples['operand1'].append(self.forLoopControlVars[0])
         self.quadruples['operand2'].append(operand)
-        self.quadruples['result'].append(maskedResult)
+        tempMemAddress = self.memory.allocateMem('temporal', 'bool', 1)
+
+        self.quadruples['result'].append(tempMemAddress)
 
         self.counter +=1;
 
-        self.result += 1
-        maskedResult = 'T' + str(self.result)
+        #self.result += 1
+        #maskedResult = 'T' + str(self.result)
+        #tempMemAddress = self.memory.allocateMem('temporal', 'float', 1)
 
         self.quadruples['operator'].append('GotoF')
-        self.quadruples['operand1'].append(maskedResult)
+        self.quadruples['operand1'].append(tempMemAddress)
         self.quadruples['operand2'].append(None)
         self.quadruples['result'].append('__')
 
@@ -308,11 +331,11 @@ class quadruples():
 
         self.counter +=1;
 
-    def generate_print_quad(self):
+    def generate_print_quad(self, varAddress):
         self.quadruples['operator'].append('print')
         self.quadruples['operand1'].append(None)
         self.quadruples['operand2'].append(None)
-        self.quadruples['result'].append(self.operandsStack['operand'].pop())
+        self.quadruples['result'].append(varAddress)
 
         self.counter +=1;
 
@@ -340,9 +363,6 @@ class quadruples():
 
         def converter(memAddress):
             newQuad = ''
-
-            print('BUUUUUUUUUUUUUUUUUG')
-            print(memAddress)
 
             if memAddress == None:
                 return 'None'

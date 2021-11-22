@@ -56,6 +56,7 @@ class MyParser(object):
 
         #Calls to functions
         self.callName = []
+        self.callMemAddress = []
         #self.callType = []
 
 
@@ -80,6 +81,9 @@ class MyParser(object):
             self.declaredVars['type'].append(self.paramTypeList[idx])
             self.declaredVars['isArray'].append(self.paramIsArrayList[idx])
 
+            memAddress = self.quads.memory.allocateMem(self.currScope, self.paramTypeList[idx], 1)
+            self.declaredVars['memAddress'].append(memAddress)
+
     def insertVars(self):
         for idx, varName in enumerate(self.declaredVars['name']):
 
@@ -94,14 +98,16 @@ class MyParser(object):
         self.declaredVars.clear()
     
     def insert_FuncsAsGlobalVars(self, funcName, funcReturnType):
-        #Before insert earch for var id-name in current VarTable if found throw Error “Error: declaration of function: with the same name”
+        #Before insert search for var id-name in current VarTable if found throw Error “Error: declaration of function: with the same name”
         #if not, add var id-name and current-type to current VarTable
         for idx, varInDir in enumerate(self.dirTable.VarsDirectory['name']):
             if varInDir == funcName and self.dirTable.VarsDirectory['scope'][idx] == 'global':
                 exitErrorText = " Error: declaration of function: “" + funcName + '” ' 'with the same name as another global variable “' + varInDir + '”'
                 sys.exit(exitErrorText)
 
-        self.dirTable.insertVariable(funcName, funcReturnType, None, 'global', False) #If ownerFunc is None it means that it is a function type in the variables
+        memAddress = self.quads.memory.allocateMem('global', funcReturnType, 1)
+        
+        self.dirTable.insertVariable(funcName, funcReturnType, None, 'global', False, memAddress) #If ownerFunc is None it means that it is a function type in the variables
 
     # Grammar declaration
 
@@ -347,19 +353,22 @@ class MyParser(object):
         print(*p)
 
     def p_bodyContent_return(self, p):
-        ''' bodyContent_return  :   statute bodyContent_return
+        ''' 
+            bodyContent_return  :   statute bodyContent_return
                                 |   empty
         '''
         print("-----p_bodyContent_return------")
         print(*p)
 
     def p_call(self, p):
-        ''' call    :   call_id LEFTPAREN call_params RIGHTPAREN
+        ''' 
+            call    :   call_id LEFTPAREN call_params RIGHTPAREN
         '''
         print("-----p_call------")
         print(*p)
         self.paramNum = 0
         callName = self.callName.pop()
+        callMemAddress = self.callMemAddress.pop()
         #Get call type
         callFound = False
         for idx, varName in enumerate(self.dirTable.VarsDirectory['name']):
@@ -368,11 +377,11 @@ class MyParser(object):
                 callFound = True
                 break
         
-        #if not callFound:
-        #    exitErrorText = 'No function with the name: ' + callName + ' found.'
-        #    sys.exit(exitErrorText)
+        if not callFound:
+            exitErrorText = 'No function with the name: ' + callName + ' found.'
+            sys.exit(exitErrorText)
         if callFound:
-            self.quads.operand_push(callName, callType)
+            self.quads.operand_push(callMemAddress, callType)
         
 
     def p_call_id(self, p):
@@ -380,18 +389,29 @@ class MyParser(object):
             call_id : ID
         '''
         #Generate ERA in quads for call
-        self.quads.generate_era_quad(p[1])
+
+        for idx, varName in enumerate(self.dirTable.VarsDirectory['name']):
+            if varName == p[1] and self.dirTable.VarsDirectory['ownerFunc'][idx] == None:
+                callType = self.dirTable.VarsDirectory['type'][idx]
+                callFound = True
+                break
+
+        memAddress = self.quads.memory.allocateMem('global', callType, 1)
+
+        self.quads.generate_era_quad(memAddress)
         self.callName.append(p[1])
+        self.callMemAddress.append(memAddress)
         print('-----p_call_id------')
         print(*p)
 
     def p_call_params(self, p):
         '''
-            call_params :   multi_param 
+            call_params :   multi_param
+                        |   empty
         '''
         print('-----p_call_params kdfjalkfdjalkfjdsalkfja------')
         print(*p)
-        self.quads.generate_GOSUB_quad(self.callName[-1])
+        self.quads.generate_GOSUB_quad(self.callMemAddress[-1])
 
     def p_multi_param(self, p):
         '''
@@ -416,7 +436,7 @@ class MyParser(object):
                     |   if
                     |   for
                     |   while
-                    |   call
+                    |   call SEMICOLON
         '''
         print("-----p_statute------")
         print(*p)
@@ -453,7 +473,10 @@ class MyParser(object):
         '''
             write_single    :   expression
         '''
-        self.quads.generate_print_quad()
+        varAddress, type = self.quads.operand_pop()
+        print("OPERANDPOOOOOOOOOOOOOP")
+        print( varAddress, type)
+        self.quads.generate_print_quad(varAddress)
 
     def p_read(self, p):
         ''' read    :   READ LEFTPAREN read1 RIGHTPAREN SEMICOLON
@@ -569,7 +592,6 @@ class MyParser(object):
                     exitErrorText = 'Non valid type for for loop first expression: ' + self.declaredVars['type'][idx]
                     sys.exit(exitErrorText)
                 break
-
         
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
@@ -588,8 +610,19 @@ class MyParser(object):
         elif not localVarFound and not varType:
             self.varType = 'float'
             # self.varNames.append() done automatically on "variable"
-            self.quads.operand_push(self.varNames[0], self.varType)
-            self.storeDeclaredVars()
+
+            memAddress = self.quads.memory.allocateMem('local', self.varType, 1)
+            self.quads.operand_push(memAddress, self.varType)
+            #self.varNames.pop()
+            #self.varIsArray.pop()
+            #self.storeDeclaredVars()
+            self.declaredVars['name'].append(self.varNames.pop())
+            self.declaredVars['type'].append(self.varType)
+            self.declaredVars['isArray'].append(self.varIsArray.pop())
+            self.declaredVars['memAddress'].append(memAddress)
+
+            #self.varNames.clear()
+            self.varType = ''
 
 
     def p_while(self, p):
@@ -745,6 +778,10 @@ class MyParser(object):
         localVarFound = False
         for idx, varName in enumerate(self.declaredVars['name']):
             if varName == self.varNames[0]:
+                print('KAJDFAKLSFJKLFJAKFJAKLFJAK')
+                print(self.declaredVars['type'][idx], self.declaredVars['name'][idx])
+                print(self.declaredVars['memAddress'])
+                print(self.declaredVars['name'])
                 self.quads.operand_push(self.declaredVars['memAddress'][idx], self.declaredVars['type'][idx])
                 self.varNames.clear()
                 localVarFound = True
@@ -755,6 +792,8 @@ class MyParser(object):
         if not localVarFound:
             varType = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
+            print('KAJDFAKLSFJKLFJAKFJAKLFJAK22222222')
+            print(varType[1], varType[0])
             self.quads.operand_push(varType[1], varType[0])
             self.varNames.clear()
         
