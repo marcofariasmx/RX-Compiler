@@ -1,10 +1,16 @@
 from semantics import Semantic
 from memory import memory
+from FuncsDir_Vars_Table import FuncsDir_Vars_Table
 import sys
+import pickle as pickle
+
 
 class quadruples():
 
     def __init__(self):
+
+        #Create DirFunc
+        self.dirTable = FuncsDir_Vars_Table()
 
         #Initialize memory
         self.memory = memory()
@@ -339,25 +345,49 @@ class quadruples():
 
         self.counter +=1;
 
+    def generate_return_quad(self):
+
+        operand, type = self.operand_pop()
+
+        self.quadruples['operator'].append('RETURN')
+        self.quadruples['operand1'].append(None)
+        self.quadruples['operand2'].append(None)
+        self.quadruples['result'].append(operand)
+
+        self.counter +=1;
+
 
     def exportOBJ(self):
 
-        file = open("OBJ.txt", "w")
+        #file = open("OBJ.pkl", "wb")
 
-        #Export memory
-        file.write('MEMORY-DUMP:\n')
-        for type in self.memory.constMem:
-            for idx, value in enumerate(self.memory.constMem[type]['value']):
-                line = str(self.memory.constMem[type]['memIndex'][idx]) + ' ' + str(value) + '\n'
-                file.write(line)
+        #1 Global mem
+        #2 Constant mem
+        #3 Funcs Dir
+        #4 Quads 
+        Dictionaries = [self.memory.globalMem, self.memory.constMem, self.dirTable.FuncsDirectory, self.quadruples]
 
-        #Export quads
-        file.write('QUADS-DUMP:\n')
-        for idx, operator in enumerate(self.quadruples['operator']):
-            line = str(operator) + ' ' +str(self.quadruples['operand1'][idx]) + ' ' + str(self.quadruples['operand2'][idx]) + ' ' + str(self.quadruples['result'][idx]) + '\n'
-            file.write(line)
+        pickle.dump( Dictionaries, open( "OBJ.pkl", "wb" ) )
 
-        file.close()
+        # #Export memory
+        # file.write('MEMORY-DUMP:\n')
+        # for type in self.memory.constMem:
+        #     for idx, value in enumerate(self.memory.constMem[type]['value']):
+        #         line = str(self.memory.constMem[type]['memIndex'][idx]) + ' ' + str(value) + '\n'
+        #         file.write(line)
+
+        # #Export functions and info
+        # file.write('FUNCTIONS-DUMP:\n')
+        # #with open('file.txt', 'w') as file:
+        # #file.write(pickle.dumps(self.dirTable.FuncsDirectory)) # use `pickle.loads` to do the reverse
+        
+        # #Export quads
+        # file.write('QUADS-DUMP:\n')
+        # for idx, operator in enumerate(self.quadruples['operator']):
+        #     line = str(operator) + ' ' +str(self.quadruples['operand1'][idx]) + ' ' + str(self.quadruples['operand2'][idx]) + ' ' + str(self.quadruples['result'][idx]) + '\n'
+        #     file.write(line)
+
+        #file.close()
 
     def exportOBJ_HumanReadable(self):
 
