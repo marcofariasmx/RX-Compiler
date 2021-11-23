@@ -17,12 +17,27 @@ class memory():
         self.constMem_BaseDir = 40000
         
         self.globalMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
-        self.localMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
-        self.tempMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
+        self.localMem = localMem().localMem
+        self.tempMem = tempMem().tempMem
         self.constMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
+        #self.localMemStack = []
+        #self.tempMemStack = []
+        #self.localMemStack.append(localMem().localMem)
+        #self.tempMemStack.append(tempMem().tempMem)
+    
+    def emptyMem(self):
+        self.localMem.clear()
+        self.tempMem.clear()
+        self.localMem = localMem().localMem
+        self.tempMem = tempMem().tempMem
 
-        #Allocate number 1 as global constant (needed for default by step of foor loop)
+    # def popMem(self):
+    #     self.localMemStack.pop()
+    #     self.tempMemStack.pop()
 
+    # def newMem(self):
+    #     self.localMemStack.append(localMem().localMem)
+    #     self.tempMemStack.append(tempMem().tempMem)
     
     def allocateMem(self, scope, type, memBlocksSize):
 
@@ -180,3 +195,11 @@ class memory():
         #print
         print('GlobalMem:')
         print(self.globalMem)
+
+class localMem():
+    def __init__(self):
+        self.localMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
+
+class tempMem():
+    def __init__(self):
+        self.tempMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
