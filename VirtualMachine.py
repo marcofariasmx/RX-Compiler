@@ -1,4 +1,6 @@
 from memory import memory
+import pickle as pickle
+import sys
 
 class VirtualMachine():
     
@@ -6,12 +8,44 @@ class VirtualMachine():
 
         #Initialize memory
         self.memory = memory()
+        self.MemStack = []
+        self.MemStack.append(memory())
 
         #Create quadruples structure
-        self.quadruples = {'operator': [], 'operand1': [], 'operand2': [], 'result': []}
+        #self.quadruples = {'operator': [], 'operand1': [], 'operand2': [], 'result': []}
 
         #Load OBJ file to memory an quads
         self.loadOBJ()
+
+        #Load to global & constant mem
+        #scope, type, nodeIndex = self.memTranslator(memAddress)
+        self.MemStack[0].globalMem = self.globalMemDict
+        self.MemStack[0].constMem = self.constantMemDict
+        #self.memory.allocateMem(scope, type, 1)
+        #self.memory.insertIntoMem(memAddress, value)
+        
+
+        #self.memory.globalMem = self.globalMemDict
+        #self.memory.constMem = self.constantMemDict
+
+
+        #Load quadruples from dict (OBJ file)
+        self.quadruples = self.quadsDict
+
+        #ERA
+        self.ERAstack = []
+
+        #Params stack
+        self.paramAddrStack = []
+        self.paramValueStack = []
+        self.paramTypeStack = []
+        self.paramCounter = 0
+
+        #GOSUB
+        #Next quad counter stack
+        self.nextQuadCounter = []
+        self.GOSUBaddrStack = []
+        self.funcInitQuadNum = 0
 
         #Process quadruples
         self.processQuads()
@@ -79,55 +113,65 @@ class VirtualMachine():
         return scope, type, nodeIndex
     
     def loadOBJ(self):
-        # Using readlines()
-        OBJfile = open('OBJ.txt', 'r')
-        Lines = OBJfile.readlines()
+        # # Using readlines()
+        # OBJfile = open('OBJ.txt', 'r')
+        # Lines = OBJfile.readlines()
         
-        # .strip() strips the newline character
-        lineType = ''
-        for line in Lines:
-            #count += 1
-            if line.strip() == 'MEMORY-DUMP:':
-                lineType = 'memory'
-                #skip the line
-                continue
-            elif line.strip() == 'QUADS-DUMP:':
-                lineType = 'quads'
-                #skip the line
-                continue
-            if lineType == 'memory':
-                #Allocate Mem and store values
-                memTokens = line.strip().split(' ')
-                memAddress = memTokens[0]
-                value = memTokens[1]
+        # # .strip() strips the newline character
+        # lineType = ''
+        # for line in Lines:
+        #     #count += 1
+        #     if line.strip() == 'MEMORY-DUMP:':
+        #         lineType = 'memory'
+        #         #skip the line
+        #         continue
+        #     elif line.strip() == 'QUADS-DUMP:':
+        #         lineType = 'quads'
+        #         #skip the line
+        #         continue
+        #     if lineType == 'memory':
+        #         #Allocate Mem and store values
+        #         memTokens = line.strip().split(' ')
+        #         memAddress = memTokens[0]
+        #         value = memTokens[1]
 
-                scope, type, nodeIndex = self.memTranslator(memAddress)
-                self.memory.allocateMem(scope, type, 1)
-                self.memory.insertIntoMem(memAddress, value)
+        #         scope, type, nodeIndex = self.memTranslator(memAddress)
+        #         self.memory.allocateMem(scope, type, 1)
+        #         self.memory.insertIntoMem(memAddress, value)
 
-            elif lineType == 'quads':
-                quadTokens = line.strip().split(' ')
-                self.quadruples['operator'].append(quadTokens[0])
-                self.quadruples['operand1'].append(quadTokens[1])
-                self.quadruples['operand2'].append(quadTokens[2])
-                self.quadruples['result'].append(quadTokens[3])
+        #     elif lineType == 'quads':
+        #         quadTokens = line.strip().split(' ')
+        #         self.quadruples['operator'].append(quadTokens[0])
+        #         self.quadruples['operand1'].append(quadTokens[1])
+        #         self.quadruples['operand2'].append(quadTokens[2])
+        #         self.quadruples['result'].append(quadTokens[3])
+
+        Dicts = pickle.load( open ("OBJ.pkl", "rb") )
+        #1 Global mem
+        #2 Constant mem
+        #3 Funcs Dir
+        #4 Quads 
+        self.globalMemDict = Dicts[0]
+        self.constantMemDict = Dicts[1]
+        self.funcsDict = Dicts[2]
+        self.quadsDict = Dicts[3]
 
     def accessMemVal(self, scope, type, index):
         if scope == 'global':
-            return self.memory.globalMem[type]['value'][index]
+            return self.MemStack[-1].globalMem[type]['value'][index]
         elif scope == 'local':
-            return self.memory.localMem[type]['value'][index]
+            return self.MemStack[-1].localMem[type]['value'][index]
         elif scope == 'temporal':
-            return self.memory.tempMem[type]['value'][index]
+            return self.MemStack[-1].tempMem[type]['value'][index]
         elif scope == 'constant':
-            return self.memory.constMem[type]['value'][index]
+            return self.MemStack[-1].constMem[type]['value'][index]
     
     def createMemBlock_IfNotExists(self, result):
         scope, type, nodeIndex = self.memTranslator(result)
         try:
             self.accessMemVal(scope, type, nodeIndex)
         except:
-            memAddress = self.memory.allocateMem(scope, type, 1)
+            memAddress = self.MemStack[-1].allocateMem(scope, type, 1)
             #print('NEW MEM ADDRESS: ', memAddress)
     
     def processQuads(self):
@@ -154,78 +198,108 @@ class VirtualMachine():
                 self.createMemBlock_IfNotExists(result)
 
                 #Then assign the value
-                valToAssign = self.memory.getValFromMemory(operand1)
-                self.memory.insertIntoMem(result, valToAssign)
+                valToAssign = self.MemStack[-1].getValFromMemory(operand1)
+                self.MemStack[-1].insertIntoMem(result, valToAssign)
 
             elif operator == '+':
                 #if result memBlock doesnt exist, create it first
                 self.createMemBlock_IfNotExists(result)
 
                 #Do the summ and store it in new temp val
-                val1 = self.memory.getValFromMemory(operand1)
-                val2 = self.memory.getValFromMemory(operand2)
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
                 resultVal = num(val1) + num(val2)
 
-                self.memory.insertIntoMem(result, resultVal)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
             
             elif operator == '-':
                 #if result memBlock doesnt exist, create it first
                 self.createMemBlock_IfNotExists(result)
 
                 #Do the subtraction and store it in new temp val
-                val1 = self.memory.getValFromMemory(operand1)
-                val2 = self.memory.getValFromMemory(operand2)
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
                 resultVal = num(val1) - num(val2)
 
-                self.memory.insertIntoMem(result, resultVal)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
             
             elif operator == '*':
                 #if result memBlock doesnt exist, create it first
                 self.createMemBlock_IfNotExists(result)
 
                 #Do the multiplication and store it in new temp val
-                val1 = self.memory.getValFromMemory(operand1)
-                val2 = self.memory.getValFromMemory(operand2)
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
                 resultVal = num(val1) * num(val2)
 
-                self.memory.insertIntoMem(result, resultVal)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
             
             elif operator == '/':
                 #if result memBlock doesnt exist, create it first
                 self.createMemBlock_IfNotExists(result)
 
                 #Do the division and store it in new temp val
-                val1 = self.memory.getValFromMemory(operand1)
-                val2 = self.memory.getValFromMemory(operand2)
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
                 resultVal = num(val1) / num(val2)
 
-                self.memory.insertIntoMem(result, resultVal)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
 
             elif operator == '>':
                 #if result memBlock doesnt exist, create it first
                 self.createMemBlock_IfNotExists(result)
 
                 #Do the biggerThan comparison and store it in new temp val
-                val1 = self.memory.getValFromMemory(operand1)
-                val2 = self.memory.getValFromMemory(operand2)
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
                 resultVal = num(val1) > num(val2)
-                self.memory.insertIntoMem(result, resultVal)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
 
             elif operator == '<':
                 #if result memBlock doesnt exist, create it first
                 self.createMemBlock_IfNotExists(result)
 
                 #Do the lessThan comparison and store it in new temp val
-                val1 = self.memory.getValFromMemory(operand1)
-                val2 = self.memory.getValFromMemory(operand2)
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
                 resultVal = num(val1) < num(val2)
-                self.memory.insertIntoMem(result, resultVal)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
+
+            elif operator == '<=':
+                #if result memBlock doesnt exist, create it first
+                self.createMemBlock_IfNotExists(result)
+
+                #Do the lessThanOrEqual comparison and store it in new temp val
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
+                resultVal = num(val1) <= num(val2)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
+
+            elif operator == '>=':
+                #if result memBlock doesnt exist, create it first
+                self.createMemBlock_IfNotExists(result)
+
+                #Do the biggerThanOrEqual comparison and store it in new temp val
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
+                resultVal = num(val1) >= num(val2)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
+
+            elif operator == '==':
+                #if result memBlock doesnt exist, create it first
+                self.createMemBlock_IfNotExists(result)
+
+                #Do the lessThan comparison and store it in new temp val
+                val1 = self.MemStack[-1].getValFromMemory(operand1)
+                val2 = self.MemStack[-1].getValFromMemory(operand2)
+                resultVal = num(val1) == num(val2)
+                self.MemStack[-1].insertIntoMem(result, resultVal)
 
             elif operator == 'GotoF':
                 #goto quad numb
                 goto = int(result)
 
-                boolVal = self.memory.getValFromMemory(operand1)
+                boolVal = self.MemStack[-1].getValFromMemory(operand1)
                 if not boolVal: #if it is indeed false
                     quadIdx = goto-1
 
@@ -234,9 +308,122 @@ class VirtualMachine():
                 goto = int(result)
 
                 quadIdx = goto-1
+
+            elif operator == 'ERA':
+                #store ERA func name
+                self.ERAstack.append(result)
+
+            elif operator == 'RETURN':
+                #1 temporarily store return address val
+                self.returnAddressVal = self.MemStack[-1].getValFromMemory(result)
+
+                #2 eliminate last memory object
+                self.MemStack.pop()
+
+                #3 Store returnAddressVal into GOSUB address
+                #3.1 allocate memory first for that particular GOSUB address
+                memAddress = self.GOSUBaddrStack.pop()
+                self.createMemBlock_IfNotExists(memAddress)
+                self.MemStack[-1].insertIntoMem(memAddress, self.returnAddressVal)
+
+                #4 restore flow of quad counter quadIdx
+                quadIdx = self.nextQuadCounter.pop()
+
+            elif operator == 'ENDFUNC':
+                #1 eliminate last memory object
+                self.MemStack.pop()
+
+                #2 restore flow of quad counter quadIdx
+                quadIdx = self.nextQuadCounter.pop()
+
+            elif operator == 'param':
+                #store param addres and value
+                self.paramAddrStack.append(operand1)
+                paramVal = self.MemStack[-1].getValFromMemory(operand1)
+                self.paramValueStack.append(paramVal)
+                self.paramCounter += 1
+
+                scope, type, nodeIndex = self.memTranslator(operand1)
+                self.paramTypeStack.append(type)
+            
+            elif operator == 'GOSUB':
+                #store next quad counter
+                self.nextQuadCounter.append(quadIdx)
+
+                #store GOSUB address
+                self.GOSUBaddrStack.append(result)
+
+                #search for function name that matches name, params and params type
+                funcName = self.ERAstack.pop()
+
+                #get the last parameters that correspond to the function inserted in stack
+                tempParamsType = []
+                # print("entrogosub")
+                # print(self.paramTypeStack)
+                # print(self.paramCounter)
+                for x in range(self.paramCounter):
+                    tempParamsType.insert(0, self.paramTypeStack.pop())
+
+                functionFound = False
+                paramTypeMatch = True
+                exactMatch = False
+
+                self.funcInitQuadNum = 0
+
+                for idx, dictFuncName in enumerate(self.funcsDict['name']):
+                    if funcName == dictFuncName: #if name matches
+                        functionFound = True
+                        #Count the number of params and check if matches
+                        if len(self.funcsDict['parameters']['paramType'][idx]) == self.paramCounter:
+                            #Verify param type match
+                            for idx2, dictParamType in enumerate(self.funcsDict['parameters']['paramType'][idx]):
+                                if dictParamType != tempParamsType[idx2]:
+                                    paramTypeMatch = False
+                                    break
+                            #If after param type match val is true, mark exact match as true and store function initDirection to point quad counter there
+                            if paramTypeMatch:
+                                exactMatch = True
+                                self.funcInitQuadNum = self.funcsDict['initDirection'][idx]
+
+                if not exactMatch:
+                    if not functionFound:
+                        exitErrorText = " Error: Function with name “" + funcName + '” not found.'
+                        sys.exit(exitErrorText)
+                    else:
+                        exitErrorText = " Error: Function with name “" + funcName + '” found, but parameters given are the incorrect type:'
+                        for paramType in tempParamsType:
+                            exitErrorText = exitErrorText + str(paramType) + ' ' 
+                        sys.exit(exitErrorText)
+
+                #Point quads to the found function's execution code
+                quadIdx = self.funcInitQuadNum - 1
+                self.funcInitQuadNum = 0
+
+                #Create new memory object
+                self.MemStack.append(memory())
+
+                #Point all constants and globals to new memory
+                self.MemStack[-1].globalMem = self.MemStack[0].globalMem
+                self.MemStack[-1].constMem = self.MemStack[0].constMem
+
+                #Allocate and insert params values:
+                #get the last parameter values that correspond to the function inserted in stack
+                tempVals = []
+                for x in range(self.paramCounter):
+                    tempVals.insert(0, self.paramValueStack.pop())
+
+                for idx, paramType in enumerate(tempParamsType):
+                    memAddress = self.MemStack[-1].allocateMem('local', paramType, 1)
+                    self.MemStack[-1].insertIntoMem(memAddress, tempVals[idx])
+                    #print(self.MemStack[-1].localMem)
+
+                #reset paramCounter to 0
+                self.paramCounter = 0
+
+                #Continue execution in quads loop
             
             elif operator == 'print':
-                print(self.memory.getValFromMemory(result))
+                print(self.MemStack[-1].getValFromMemory(result))
 
             #Quadruples index
             quadIdx += 1

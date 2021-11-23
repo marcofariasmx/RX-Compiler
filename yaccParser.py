@@ -2,7 +2,7 @@ from re import S
 import ply.yacc as yacc
 import sys
 from lexer import MyLexer
-from FuncsDir_Vars_Table import FuncsDir_Vars_Table
+#from FuncsDir_Vars_Table import FuncsDir_Vars_Table
 from collections import defaultdict
 from quadruples import quadruples
 from copy import deepcopy
@@ -13,9 +13,11 @@ class MyParser(object):
 
     def __init__(self):
     
-        #Create DirFunc
-        self.dirTable = FuncsDir_Vars_Table()
+        #Create quads object
         self.quads = quadruples()
+
+        #Create DirFunc
+        self.dirTable = self.quads.dirTable
 
         # Build the parser and lexer
         self.lexer = MyLexer()
@@ -157,6 +159,10 @@ class MyParser(object):
         '''
             main_keyword    : MAIN
         '''
+
+        #Clear local and temp memory so that it starts fresh
+        self.quads.memory.emptyMem()
+
         self.functionsInitDir.append(self.quads.counter)
         self.currScope = 'local'
     
@@ -242,6 +248,8 @@ class MyParser(object):
         print("-----FUNCTIONS------")
         print(*p)
         self.quads.generate_endfunc_quad()
+        print("ENDOFUUUUUUUUUUUUNC")
+        print(self.paramTypeList)
 
         #Add id-name and type program a DirFunc
         if p[2] and p[1]:
@@ -264,6 +272,12 @@ class MyParser(object):
         '''
             function_id :   ID
         '''
+        #Clear local and temp memory so that it starts fresh
+        self.quads.memory.emptyMem()
+
+        #Clear params in params list to store the correct ones
+        self.paramType.clear()
+
         self.functionsInitDir.append(self.quads.counter)
         self.functionName = p[1]
         self.currScope = 'local'
@@ -280,6 +294,9 @@ class MyParser(object):
         self.varType = p[1]
         self.functionType = p[1]
         self.paramType.append(p[1])
+        print("SE HIZO EL APPEND DE: ")
+        print(p[1])
+        print(self.paramType)
         
     def p_variable(self, p):
         ''' variable    :   var_matrix
@@ -327,6 +344,10 @@ class MyParser(object):
                         |   type_simple variable
         '''
         #self.paramType is pushed in type_simple
+
+        print("ENTRO UN PARAMETRO!!!!!")
+        print(self.paramType[0])
+
         self.paramTypeList.append(self.paramType.pop(0))
         self.paramIsArrayList.append(self.varIsArray.pop(0))
         self.paramNameList.append(self.varNames.pop(0))
@@ -347,7 +368,7 @@ class MyParser(object):
 
     def p_body_return(self, p):
         ''' 
-            body_return :   LEFTBRACKET bodyContent_return RETURN factor RIGHTBRACKET
+            body_return :   LEFTBRACKET bodyContent_return RIGHTBRACKET
         '''
         print("-----p_body_return------")
         print(*p)
@@ -376,6 +397,16 @@ class MyParser(object):
                 callType = self.dirTable.VarsDirectory['type'][idx]
                 callFound = True
                 break
+
+        #For recursivity cases
+        print("FOR RECURSIVITY")
+        print(callName)
+        print(callMemAddress)
+        print(self.functionName)
+        print(self.functionType)
+        if self.functionName == callName:
+            callFound = True
+            callType = self.functionType
         
         if not callFound:
             exitErrorText = 'No function with the name: ' + callName + ' found.'
@@ -393,12 +424,22 @@ class MyParser(object):
         for idx, varName in enumerate(self.dirTable.VarsDirectory['name']):
             if varName == p[1] and self.dirTable.VarsDirectory['ownerFunc'][idx] == None:
                 callType = self.dirTable.VarsDirectory['type'][idx]
+                print(self.dirTable.VarsDirectory['type'][idx])
                 callFound = True
                 break
 
-        memAddress = self.quads.memory.allocateMem('global', callType, 1)
+        print(self.dirTable.VarsDirectory['type'])
+        print(self.dirTable.VarsDirectory)
+        print(p[1])
 
-        self.quads.generate_era_quad(memAddress)
+        if self.functionName == p[1]:
+            callFound = True
+            callType = self.functionType
+
+        memAddress = self.quads.memory.allocateMem('global', callType, 1)
+        #memAddress = self.quads.memory.allocateMem('global', 'int', 1)
+
+        self.quads.generate_era_quad(p[1])
         self.callName.append(p[1])
         self.callMemAddress.append(memAddress)
         print('-----p_call_id------')
@@ -437,9 +478,16 @@ class MyParser(object):
                     |   for
                     |   while
                     |   call SEMICOLON
+                    |   returnTrigger
         '''
         print("-----p_statute------")
         print(*p)
+
+    def p_returnTrigger(self, p):
+        '''
+            returnTrigger   :   RETURN factor SEMICOLON
+        '''
+        self.quads.generate_return_quad()
 
 
     def p_assignment(self, p):
@@ -674,7 +722,9 @@ class MyParser(object):
                         |   nano_exp GREATER nano_exp
                         |   nano_exp LESS nano_exp
                         |   nano_exp NOTEQUAL nano_exp
-                        |   nano_exp EQUAL nano_exp 
+                        |   nano_exp EQUAL nano_exp
+                        |   nano_exp GREATEROREQUAL nano_exp
+                        |   nano_exp LESSOREQUAL nano_exp
         '''
         if len(p) >= 3:
             if p[2]:
@@ -755,7 +805,14 @@ class MyParser(object):
             factor_char   :   CTE_CH
         '''
 
-        self.quads.operand_push(p[1], 'char')
+        #Check first if constant already exists in constants table
+        memAddress = self.quads.memory.searchConstant('char', p[1])
+        #If it doesnt exists, create it and insert into it
+        if not memAddress:
+            memAddress = self.quads.memory.allocateMem('constant', 'char', 1)
+            self.quads.memory.insertIntoMem(memAddress, p[1])
+
+        self.quads.operand_push(memAddress, 'char')
         print("-----p_factor_char------")
         print(*p)
 
