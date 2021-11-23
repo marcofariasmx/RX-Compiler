@@ -32,7 +32,7 @@ class MyLexer(object):
 
     # Tokens based on the parser
 
-    tokens = ['SEMICOLON', 'LEFTBRACKET', 'RIGHTBRACKET', 'GREATER', 'LESS', 'NOTEQUAL', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
+    tokens = ['SEMICOLON', 'LEFTBRACKET', 'RIGHTBRACKET', 'GREATER', 'LESS', 'GREATEROREQUAL', 'LESSOREQUAL', 'NOTEQUAL', 'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
             'LEFTPAREN', 'RIGHTPAREN', 'ID', 'CTE_I', 'CTE_F', 'CTE_CH', 'COLON', 'ASSIGNMENT', 'CTE_STRING', 'COMMA', 'PROGRAM', 'PRINT',
             'IF', 'FOR', 'ELSE', 'VARS', 'INT', 'FLOAT', 'CHAR', 'RIGHTSQBRACKET', 'LEFTSQBRACKET', 'MAIN', 'BODY', 'TYPE_SIMPLE',
             'VARIABLE', 'BODY_RETURN', 'PARAMS', 'CALL', 'READ', 'EQUAL', 'FUNC', 'VOID', 'RETURN', 'TO', 'DO', 'BY', 'WHILE', 'OR', 'AND', 'BOOL', 'TRUE', 'FALSE']
@@ -43,7 +43,9 @@ class MyLexer(object):
     t_LEFTBRACKET = r'\{'
     t_RIGHTBRACKET = r'\}'
     t_GREATER = r'\>'
+    t_GREATEROREQUAL = r'\>='
     t_LESS = r'\<'
+    t_LESSOREQUAL = r'\<='
     t_NOTEQUAL = r'\!='
     t_PLUS = r'\+'
     t_MINUS = r'-'
@@ -88,10 +90,11 @@ class MyLexer(object):
         t.value = int(t.value)
         return t
 
-    # Define a variable int
+    # Define a variable char
     def t_CTE_CH(self,t):
-        r'\".*\"' 
-        t.value = int(t.value)
+        #r'\".*\"'
+        r"'([A-Za-z]|[0-9])([A-Za-z]|[0-9])*'"
+        t.value = str(t.value)
         return t
 
     # Define a new line or multiple new lines
