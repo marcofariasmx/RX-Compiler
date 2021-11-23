@@ -32,6 +32,12 @@ class MyParser(object):
         self.declaredVars = defaultdict(list)
         self.currScope = ''
         self.ownerFunc = ''
+        self.varsSize = []
+        self.varSizeNum = 0
+        self.varDimensions = []
+        self.varDimensionsHelper = []
+        self.dimensionsSize = []
+        self.dimensionSizeHelper = []
 
         #Quadruples
         self.operand1 = defaultdict(list)
@@ -64,14 +70,44 @@ class MyParser(object):
 
     #Helper functions
     def storeDeclaredVars(self):
-        #print(self.varNames)
-        #print(self.declaredVars)
+        
         for var in self.varNames:
             self.declaredVars['name'].append(var)
             self.declaredVars['type'].append(self.varType)
             self.declaredVars['isArray'].append(self.varIsArray.pop(0))
 
-            memAddress = self.quads.memory.allocateMem(self.currScope, self.varType, 1)
+            if self.declaredVars['isArray'][-1]: #last appended item is array, then
+                
+                self.declaredVars['dimensions'].append(deepcopy(self.varDimensionsHelper))
+
+                
+                varsSize = 1
+
+
+                for dim in self.varDimensionsHelper:
+
+                    varsSize = varsSize * int(dim)
+                
+                self.declaredVars['size'].append(varsSize)
+                
+                self.declaredVars['dimensionsSize'].append(len(self.varDimensionsHelper))
+            
+                memBlocksSize = varsSize
+
+                self.varDimensionsHelper.clear()
+                self.varDimensions.clear()
+
+            else:
+
+                self.declaredVars['dimensions'].append(None)
+                self.declaredVars['size'].append(1)
+                self.declaredVars['dimensionsSize'].append(None)
+
+                memBlocksSize = 1
+
+            
+
+            memAddress = self.quads.memory.allocateMem(self.currScope, self.varType, memBlocksSize)
             self.declaredVars['memAddress'].append(memAddress)
 
         self.varNames.clear()
@@ -96,7 +132,7 @@ class MyParser(object):
                     exitErrorText = " Error: multiple declaration of variable: “" + varName + '” ' 'in scope of “' + self.ownerFunc + '”'
                     sys.exit(exitErrorText)
 
-            self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope, self.declaredVars['isArray'][idx], self.declaredVars['memAddress'][idx])
+            self.dirTable.insertVariable(varName, self.declaredVars['type'][idx], self.ownerFunc, self.currScope, self.declaredVars['isArray'][idx], self.declaredVars['memAddress'][idx], self.declaredVars['size'][idx], self.declaredVars['dimensions'][idx], self.declaredVars['dimensionsSize'][idx])
         self.declaredVars.clear()
     
     def insert_FuncsAsGlobalVars(self, funcName, funcReturnType):
@@ -248,8 +284,6 @@ class MyParser(object):
         print("-----FUNCTIONS------")
         print(*p)
         self.quads.generate_endfunc_quad()
-        print("ENDOFUUUUUUUUUUUUNC")
-        print(self.paramTypeList)
 
         #Add id-name and type program a DirFunc
         if p[2] and p[1]:
@@ -294,9 +328,6 @@ class MyParser(object):
         self.varType = p[1]
         self.functionType = p[1]
         self.paramType.append(p[1])
-        print("SE HIZO EL APPEND DE: ")
-        print(p[1])
-        print(self.paramType)
         
     def p_variable(self, p):
         ''' variable    :   var_matrix
@@ -305,8 +336,10 @@ class MyParser(object):
         '''
         print("-----VARIABLE------")
         print(*p)
-        ####Esto puede tronar cuando sea una nano exp al depender de p[1], OJO AQUI!!!!!!!!
-
+        
+        #Append the variable dimensions
+        self.varDimensions.append(self.varDimensionsHelper)
+        
     def p_var_id(self, p):
         '''
             var_id  : ID
@@ -319,15 +352,26 @@ class MyParser(object):
 
     def p_var_matrix(self, p):
         '''
-            var_matrix  :   var_id LEFTSQBRACKET nano_exp RIGHTSQBRACKET LEFTSQBRACKET nano_exp RIGHTSQBRACKET
+            var_matrix  :   var_id var_dimension var_dimension
         '''
         self.varIsArray[-1] = True
 
     def p_var_array(self, p):
         '''
-            var_array  :   var_id LEFTSQBRACKET nano_exp RIGHTSQBRACKET 
+            var_array  :   var_id var_dimension
         '''
         self.varIsArray[-1] = True
+
+    def p_var_dimension(self, p):
+        '''
+            var_dimension   :   LEFTSQBRACKET nano_exp RIGHTSQBRACKET
+        '''
+
+        #get the addrs dimension from operands
+        operand, type = self.quads.operand_pop()
+        #convert that addrs to a dim number
+        dimNumber = self.quads.memory.getValFromMemory(operand)
+        self.varDimensionsHelper.append(dimNumber)
     
     def p_params(self, p):
         '''
@@ -437,7 +481,6 @@ class MyParser(object):
             callType = self.functionType
 
         memAddress = self.quads.memory.allocateMem('global', callType, 1)
-        #memAddress = self.quads.memory.allocateMem('global', 'int', 1)
 
         self.quads.generate_era_quad(p[1])
         self.callName.append(p[1])
@@ -644,14 +687,14 @@ class MyParser(object):
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
-            varType = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
+            varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
             #Before pushing to operands stack, validate type is numeric
-            if varType[0] == 'int' or varType[0] == 'float':
-                self.quads.operand_push(varType[1], varType[0]) #POTENTIAL ERROR HERE SINCE IT IS PUSHING the name varType[1], analize, also for if
+            if varType == 'int' or varType == 'float':
+                self.quads.operand_push(memAddress, varType) #POTENTIAL ERROR HERE SINCE IT IS PUSHING the name varType[1], analize, also for if
                 self.varNames.clear()
             else:
-                exitErrorText = 'Non valid type for for loop first expression: ' + varType
+                exitErrorText = 'Non valid type for for loop first expression: ' + self.varNames[0] + ' of type ' + varType
                 sys.exit(exitErrorText)
         
         #If variable was not found anywhere, store it
@@ -661,9 +704,7 @@ class MyParser(object):
 
             memAddress = self.quads.memory.allocateMem('local', self.varType, 1)
             self.quads.operand_push(memAddress, self.varType)
-            #self.varNames.pop()
-            #self.varIsArray.pop()
-            #self.storeDeclaredVars()
+            
             self.declaredVars['name'].append(self.varNames.pop())
             self.declaredVars['type'].append(self.varType)
             self.declaredVars['isArray'].append(self.varIsArray.pop())
@@ -835,11 +876,33 @@ class MyParser(object):
         localVarFound = False
         for idx, varName in enumerate(self.declaredVars['name']):
             if varName == self.varNames[0]:
-                print('KAJDFAKLSFJKLFJAKFJAKLFJAK')
-                print(self.declaredVars['type'][idx], self.declaredVars['name'][idx])
-                print(self.declaredVars['memAddress'])
-                print(self.declaredVars['name'])
-                self.quads.operand_push(self.declaredVars['memAddress'][idx], self.declaredVars['type'][idx])
+                if self.declaredVars['isArray'][idx]:
+                    #Calculate offset
+                
+                    #if is matrix
+                    dimensions = self.declaredVars['dimensions'][idx]
+                    if len(dimensions) > 1:
+                        #First Ensure it is within limits
+                        if self.varDimensionsHelper[0] > dimensions[0] or self.varDimensionsHelper[0] > dimensions[0]:
+                            exitErrorText = " Error: out of bounds access for: “" + varName + '”'
+                            sys.exit(exitErrorText)
+
+                        # M[s1][s2] = DirBase(M) + (s1 * d2) + s2 - d2 - 1
+                        offset = (self.varDimensionsHelper[0] * dimensions[1]) + self.varDimensionsHelper[1] - dimensions[1] - 1
+                    
+                    #it is array
+                    else:
+                        #First Ensure it is within limits
+                        if self.varDimensionsHelper[0] > dimensions[0]:
+                            exitErrorText = " Error: out of bounds access for: “" + varName + '”'
+                            sys.exit(exitErrorText)
+                        
+                        # A[s1] = DirBase(A) + s1 - 1
+                        offset = self.varDimensionsHelper[0] - 1
+                else:
+                    #Default offset is always 1
+                    offset = 0
+                self.quads.operand_push(int(self.declaredVars['memAddress'][idx]) + offset, self.declaredVars['type'][idx])
                 self.varNames.clear()
                 localVarFound = True
                 break
@@ -847,12 +910,38 @@ class MyParser(object):
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
-            varType = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
+            varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
-            print('KAJDFAKLSFJKLFJAKFJAKLFJAK22222222')
-            print(varType[1], varType[0])
-            self.quads.operand_push(varType[1], varType[0])
+
+            if isArray:
+                #Calculate offset
+                
+                #if is matrix
+                if len(dimensions) > 1:
+                    #First Ensure it is within limits
+                    if self.varDimensionsHelper[0] > dimensions[0] or self.varDimensionsHelper[0] > dimensions[0]:
+                        exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
+                        sys.exit(exitErrorText)
+
+                    # M[s1][s2] = DirBase(M) + (s1 * d2) + s2 - d2 - 1
+                    offset = (self.varDimensionsHelper[0] * dimensions[1]) + self.varDimensionsHelper[1] - dimensions[1] - 1
+                
+                #it is array
+                else:
+                    #First Ensure it is within limits
+                    if self.varDimensionsHelper[0] > dimensions[0]:
+                        exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
+                        sys.exit(exitErrorText)
+                    
+                    # A[s1] = DirBase(A) + s1 - 1
+                    offset = self.varDimensionsHelper[0] - 1
+            else:
+                #Default offset is always 1
+                offset = 0
+            
+            self.quads.operand_push(int(memAddress) + offset , varType)
             self.varNames.clear()
+            self.varDimensionsHelper.clear()
         
         #If variable was not found anywhere, throw an error and exit
         elif not localVarFound and not varType:
@@ -879,8 +968,3 @@ class MyParser(object):
         pass
 
 
-
-#####DEBUGS:
-
-# 1) Resolver lo de CTE_String y CTE_CH
-# 2) Al haberlo resuelto, cambiar la gramática para que incluya comillas y se de a entender que eso es el string o char

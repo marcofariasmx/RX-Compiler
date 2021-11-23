@@ -23,7 +23,7 @@ func int suma2(int num1, float num2){
 
     resultado = num1 + num2;
 
-    return resultado
+    return resultado;
 }
 
 main()
@@ -34,8 +34,8 @@ main()
 
     //A = 10;
 
-    X = True;
+    //X = True;
 
-    D = suma2(E*2, F);
+    //D = suma2((E*2), F);
 
 }

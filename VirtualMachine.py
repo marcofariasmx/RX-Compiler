@@ -154,7 +154,8 @@ class VirtualMachine():
         self.globalMemDict = Dicts[0]
         self.constantMemDict = Dicts[1]
         self.funcsDict = Dicts[2]
-        self.quadsDict = Dicts[3]
+        self.varsDict = Dicts[3]
+        self.quadsDict = Dicts[4]
 
     def accessMemVal(self, scope, type, index):
         if scope == 'global':
