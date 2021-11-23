@@ -1,0 +1,17 @@
+program recursiveCall;
+
+vars
+    int controlVar;
+
+func int square(float num1){
+    return (num1 * num1);
+}
+
+main()
+{
+    vars float A;
+    A = 5.5;
+
+    print(square(A));
+
+}

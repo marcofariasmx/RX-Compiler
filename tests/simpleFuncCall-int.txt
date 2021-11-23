@@ -3,21 +3,28 @@ program simpleFunctionCall;
 vars
     int controlVar;
 
-func int funcSum (int num1, int num2){
-    vars int result;
-    result = 0;
-    result = num1 + num2;
-    controlVar = 99;
-    return result
+//func int funcSum (int num1, int num2){
+//    vars int result;
+//    result = 0;
+//    result = num1 + num2;
+//    controlVar = 99;
+//    return result;
+//}
+
+func float exponential(char num1, float exponent){
+    vars float result;
+    result = num1 * exponent;
+    return result;
 }
 
 main()
 {
-    vars int A, B, C;
-    A = 5;
-    B = 7;
+    vars float A, B, C;
+    A = 25.0;
+    B = 7.0;
 
-    C = funcSum(A, B);
+    //C = funcSum(A, B);
+    C = exponential(A,B);
 
     print(C);
     print(controlVar);

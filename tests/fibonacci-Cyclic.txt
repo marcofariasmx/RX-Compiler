@@ -1,0 +1,41 @@
+program fibonacciCyclic;
+
+func int fibonacci(int num){
+    vars 
+        int fib1, fib2, fibX;
+
+    fib1 = 1;
+    fib2 = 1;
+    fibX = 999;
+
+    if (num == 1){
+
+        return 1;
+    }
+
+    if (num == 2){
+        
+        return 2;
+    }
+       
+    if (num > 2){
+        for indexFib = 2 to num by 1 do{
+            fibX = fib1 + fib2;
+            fib1 = fib2;
+            fib2 = fibX;
+        }
+        return fibX;
+    }
+       
+}
+
+main()
+{
+    vars int A, result;
+    A = 10;
+
+    result = fibonacci(A);
+
+    print(result);
+
+}

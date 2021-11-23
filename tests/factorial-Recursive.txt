@@ -1,0 +1,23 @@
+program factorialRecursive;
+
+func int factorial(int num){
+    if (num == 1){
+        return 1;
+    }
+       
+   else{
+       return(num * factorial(num - 1));
+   }
+       
+}
+
+main()
+{
+    vars int A, result;
+    A = 5;
+
+    result = factorial(A);
+
+    print(result);
+
+}

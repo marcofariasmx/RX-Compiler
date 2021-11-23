@@ -1,0 +1,23 @@
+program recursiveCall;
+
+func int fibonacci(int fiboNum){
+    if (fiboNum <= 1){
+        return fiboNum;
+    }
+       
+   else{
+       return(fibonacci(fiboNum - 1) + fibonacci(fiboNum - 2));
+   }
+       
+}
+
+main()
+{
+    vars int A, result;
+    A = 25;
+
+    result = fibonacci(A);
+
+    print(result);
+
+}

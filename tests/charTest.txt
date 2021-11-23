@@ -1,0 +1,13 @@
+program charTest;
+//errorHERE!
+vars
+    char char1, char2, char3;
+
+main()
+{
+    char1 = 'Ai';
+    char2 = 'B';
+    char3 = 'C';
+
+    print(char1, char2, char3);
+}
