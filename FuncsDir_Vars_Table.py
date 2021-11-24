@@ -47,7 +47,7 @@ class FuncsDir_Vars_Table():
                     dimensions = self.VarsDirectory['dimensions'][idx]
                     return type, memAddress, isArray, dimensions
         
-        return None
+        return None, None, None, None
 
 
     def action(self):

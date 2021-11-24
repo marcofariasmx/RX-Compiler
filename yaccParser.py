@@ -118,6 +118,9 @@ class MyParser(object):
             self.declaredVars['name'].append(paramName)
             self.declaredVars['type'].append(self.paramTypeList[idx])
             self.declaredVars['isArray'].append(self.paramIsArrayList[idx])
+            self.declaredVars['dimensions'].append(None)
+            self.declaredVars['size'].append(1)
+            self.declaredVars['dimensionsSize'].append(None)
 
             memAddress = self.quads.memory.allocateMem(self.currScope, self.paramTypeList[idx], 1)
             self.declaredVars['memAddress'].append(memAddress)
@@ -145,7 +148,7 @@ class MyParser(object):
 
         memAddress = self.quads.memory.allocateMem('global', funcReturnType, 1)
         
-        self.dirTable.insertVariable(funcName, funcReturnType, None, 'global', False, memAddress) #If ownerFunc is None it means that it is a function type in the variables
+        self.dirTable.insertVariable(funcName, funcReturnType, None, 'global', False, memAddress, 1, None, None) #If ownerFunc is None it means that it is a function type in the variables
 
     # Grammar declaration
 
@@ -709,6 +712,9 @@ class MyParser(object):
             self.declaredVars['type'].append(self.varType)
             self.declaredVars['isArray'].append(self.varIsArray.pop())
             self.declaredVars['memAddress'].append(memAddress)
+            self.declaredVars['dimensions'].append(None)
+            self.declaredVars['size'].append(1)
+            self.declaredVars['dimensionsSize'].append(None)
 
             #self.varNames.clear()
             self.varType = ''
@@ -903,13 +909,16 @@ class MyParser(object):
                     #Default offset is always 1
                     offset = 0
                 self.quads.operand_push(int(self.declaredVars['memAddress'][idx]) + offset, self.declaredVars['type'][idx])
-                self.varNames.clear()
+                #self.varNames.clear()
+                self.varNames.pop(0)
                 localVarFound = True
                 break
         
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
+            print('kurikitakaaaaaa')
+            print(self.varNames)
             varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
 
@@ -929,18 +938,30 @@ class MyParser(object):
                 #it is array
                 else:
                     #First Ensure it is within limits
-                    if self.varDimensionsHelper[0] > dimensions[0]:
-                        exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
-                        sys.exit(exitErrorText)
-                    
-                    # A[s1] = DirBase(A) + s1 - 1
-                    offset = self.varDimensionsHelper[0] - 1
+                    print(self.varDimensionsHelper, dimensions)
+                    print(self.quads.quadruples)
+                    print(self.quads.operandsStack)
+                    print(self.varNames)
+                    #Comprobar las dimensiones que se están pasando
+                    if len(self.varDimensionsHelper) > 0:
+                        if self.varDimensionsHelper[0] > dimensions[0]:
+                            exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
+                            sys.exit(exitErrorText)
+                        
+                        # A[s1] = DirBase(A) + s1 - 1
+                        offset = self.varDimensionsHelper[0] - 1
+                    else: #Si no tiene dimensiones ints, entonces se está pasando la direción de una variable, recalcularla como un int
+                        varType, varMemAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[-1])
+                        print('varmemadddresss:', varMemAddress)
+                        #value = self.quads.memory.getValFromMemory(varMemAddress)
+                        offset = 0
             else:
                 #Default offset is always 1
                 offset = 0
             
             self.quads.operand_push(int(memAddress) + offset , varType)
-            self.varNames.clear()
+            #self.varNames.clear()
+            self.varNames.pop(0)
             self.varDimensionsHelper.clear()
         
         #If variable was not found anywhere, throw an error and exit

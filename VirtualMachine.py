@@ -50,39 +50,19 @@ class VirtualMachine():
         #Process quadruples
         self.processQuads()
 
-        # #TEST ZONE
-        # print('-----------------TEST ZONE-----------------')
+        # #Print quads for testing purposes
+        # self.printQuads()
 
-        # #Test print quads
-        # print("QUADRUPLES: ")
-        # for idx, operator in enumerate(self.quadruples['operator']):
-        #    print(idx+1, ', ', operator, ', ', self.quadruples['operand1'][idx], ', ', self.quadruples['operand2'][idx], ', ', self.quadruples['result'][idx])
+        # #Print memorys
+        # print('GlobalMem')
+        # print(self.MemStack[-1].globalMem)
+        # print('localMem')
+        # print(self.MemStack[-1].localMem)
+        # print('tempMem')
+        # print(self.MemStack[-1].tempMem)
+        # print('constMem')
+        # print(self.MemStack[-1].constMem)
 
-        # #Test print mems
-        # print("MEMORY: ")
-        # print("Global: ")
-        # print(self.memory.globalMem)
-        # print("Local: ")
-        # print(self.memory.localMem)
-        # print("Temporal: ")
-        # print(self.memory.tempMem)
-        # print("Constant: ")
-        # print(self.memory.constMem)
-
-        #Test exists
-        # idx = 1
-        # type = 'int'
-        # try:
-        #     self.memory.constMem[type]['memIndex'][idx]
-        #     print('Value: ', self.memory.constMem[type]['value'][idx], ' exists!')
-        # except:
-        #     print('Mem block doesnt exist')
-
-        # try:
-        #     val = self.accessMemVal('constant', type, 2)
-        #     print('Val: ', val, ' exists!')
-        # except:
-        #     print('Mem block doesnt exist')
 
     def memTranslator(self, memAddress):
 
@@ -113,38 +93,6 @@ class VirtualMachine():
         return scope, type, nodeIndex
     
     def loadOBJ(self):
-        # # Using readlines()
-        # OBJfile = open('OBJ.txt', 'r')
-        # Lines = OBJfile.readlines()
-        
-        # # .strip() strips the newline character
-        # lineType = ''
-        # for line in Lines:
-        #     #count += 1
-        #     if line.strip() == 'MEMORY-DUMP:':
-        #         lineType = 'memory'
-        #         #skip the line
-        #         continue
-        #     elif line.strip() == 'QUADS-DUMP:':
-        #         lineType = 'quads'
-        #         #skip the line
-        #         continue
-        #     if lineType == 'memory':
-        #         #Allocate Mem and store values
-        #         memTokens = line.strip().split(' ')
-        #         memAddress = memTokens[0]
-        #         value = memTokens[1]
-
-        #         scope, type, nodeIndex = self.memTranslator(memAddress)
-        #         self.memory.allocateMem(scope, type, 1)
-        #         self.memory.insertIntoMem(memAddress, value)
-
-        #     elif lineType == 'quads':
-        #         quadTokens = line.strip().split(' ')
-        #         self.quadruples['operator'].append(quadTokens[0])
-        #         self.quadruples['operand1'].append(quadTokens[1])
-        #         self.quadruples['operand2'].append(quadTokens[2])
-        #         self.quadruples['result'].append(quadTokens[3])
 
         Dicts = pickle.load( open ("OBJ.pkl", "rb") )
         #1 Global mem
@@ -201,6 +149,9 @@ class VirtualMachine():
                 #Then assign the value
                 valToAssign = self.MemStack[-1].getValFromMemory(operand1)
                 self.MemStack[-1].insertIntoMem(result, valToAssign)
+                # print(result, valToAssign)
+                # print('localMem')
+                # print(self.MemStack[-1].localMem)
 
             elif operator == '+':
                 #if result memBlock doesnt exist, create it first
@@ -428,6 +379,11 @@ class VirtualMachine():
 
             #Quadruples index
             quadIdx += 1
+
+    def printQuads(self):
+        print("QUADRUPLES: ")
+        for idx, operator in enumerate(self.quadruples['operator']):
+            print(idx+1, ', ', operator, ', ', self.quadruples['operand1'][idx], ', ', self.quadruples['operand2'][idx], ', ', self.quadruples['result'][idx])
 
 #Initialize VM
 VM = VirtualMachine()

@@ -1,5 +1,5 @@
-program arrays;
-//The purpose of this small program is to test arrays
+program matrixes;
+//The purpose of this small program is to test matrixes
 
 vars 
     int num1;
