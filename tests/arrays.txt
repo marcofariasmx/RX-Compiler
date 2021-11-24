@@ -6,6 +6,7 @@ vars
     int Array1[5];
     int Matrix[2][4];
     int num2;
+    int Array2[10];
 
 main()
 {

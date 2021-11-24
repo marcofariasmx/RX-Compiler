@@ -446,11 +446,6 @@ class MyParser(object):
                 break
 
         #For recursivity cases
-        print("FOR RECURSIVITY")
-        print(callName)
-        print(callMemAddress)
-        print(self.functionName)
-        print(self.functionType)
         if self.functionName == callName:
             callFound = True
             callType = self.functionType

@@ -1,0 +1,32 @@
+program fibonacciRecursive;
+
+func int fibonacci(int fiboNum){
+    vars 
+        int fibRes1, fibRes2, fibResR;
+    
+    if (fiboNum <= 1){
+        //print(fiboNum);
+        return fiboNum;
+    }
+       
+   else{
+       //print(fiboNum);
+
+        fibRes1 = fibonacci(fiboNum - 1);
+        fibRes2 = fibonacci(fiboNum - 2);
+        fibResR = fibRes1 + fibRes2;
+        return fibResR;
+   }
+       
+}
+
+main()
+{
+    vars int A, result;
+    A = 10;
+
+    result = fibonacci(A);
+
+    print("Fibonacci de", A, "Resultado:", result);
+
+}

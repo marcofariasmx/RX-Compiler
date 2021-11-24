@@ -93,7 +93,8 @@ class MyLexer(object):
     # Define a variable char
     def t_CTE_CH(self,t):
         #r'\".*\"'
-        r"'([A-Za-z]|[0-9])([A-Za-z]|[0-9])*'"
+        #r"'([A-Za-z]|[0-9])([A-Za-z]|[0-9])*'"
+        r'"([A-Za-z]|[0-9]|\ |\?|\+|\-|\*|\_|\-|\:|\,)*"'
         t.value = str(t.value)
         return t
 

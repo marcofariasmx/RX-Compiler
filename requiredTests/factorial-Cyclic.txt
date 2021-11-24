@@ -1,0 +1,28 @@
+program factorialCyclic;
+
+func int factorial(int num){
+
+    vars int index, fac;
+
+    index = 1;
+    fac = 1;
+    
+    while(index <= num){
+        fac = fac * index;
+        index = index + 1;
+    }
+    
+    return fac;
+       
+}
+
+main()
+{
+    vars int A, result;
+    A = 5;
+
+    result = factorial(A);
+
+    print("Factorial de", A, "Resultado:", result);
+
+}

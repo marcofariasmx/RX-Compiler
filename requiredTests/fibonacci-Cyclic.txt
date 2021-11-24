@@ -36,6 +36,6 @@ main()
 
     result = fibonacci(A);
 
-    print(result);
+    print("Fibonacci de", A, "Resultado:", result);
 
 }

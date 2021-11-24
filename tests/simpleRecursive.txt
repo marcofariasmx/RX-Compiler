@@ -2,11 +2,13 @@ program recursiveCall;
 
 func int fibonacci(int fiboNum){
     if (fiboNum <= 1){
+        //print(fiboNum);
         return fiboNum;
     }
        
    else{
-       return(fibonacci(fiboNum - 1) + fibonacci(fiboNum - 2));
+       //print(fiboNum);
+       return((fibonacci(fiboNum - 1) + fibonacci(fiboNum - 2)));
    }
        
 }
@@ -14,7 +16,7 @@ func int fibonacci(int fiboNum){
 main()
 {
     vars int A, result;
-    A = 25;
+    A = 11;
 
     result = fibonacci(A);
 
