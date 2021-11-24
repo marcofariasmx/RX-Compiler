@@ -11,9 +11,9 @@ main()
 
     for indexF = 15 to 25 by 2 do{
         resultado = resultado + 1;
-        print(indexF);
+        print(indexF,  "_nl");
     }
         
-   print(resultado);
+   print("Resultado: ", resultado, "_nl");
 
 }

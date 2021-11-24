@@ -23,6 +23,6 @@ main()
 
     result = factorial(A);
 
-    print("Factorial de", A, "Resultado:", result);
+    print("Factorial de ", A, "_nl", "Resultado: ", result);
 
 }

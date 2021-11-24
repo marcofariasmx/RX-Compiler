@@ -41,8 +41,8 @@ class quadruples():
         self.operandsStack['operand'].append(operand)
         self.operandsStack['type'].append(type)
 
-        print("Operands Stack: ")
-        print(self.operandsStack)
+        #print("Operands Stack: ")
+        #print(self.operandsStack)
 
     def operand_pop(self):
         operand = self.operandsStack['operand'].pop()
@@ -55,14 +55,22 @@ class quadruples():
         self.operatorsStack.append(operator)
         self.generateQuad(operator)
 
-        print("Operators Stack: ")
-        print(self.operatorsStack)
+        #print("Operators Stack: ")
+        #print(self.operatorsStack)
 
     def generateQuad(self, operatorType):
         rightOperand = self.operandsStack['operand'].pop()
         rightType = self.operandsStack['type'].pop()
         leftOperand = self.operandsStack['operand'].pop()
         leftType = self.operandsStack['type'].pop()
+
+        #If one more pop() is available AND it is pointer type, pop it and replace it
+        try:
+            if self.operandsStack['operand'][-1][0] == '+':
+                leftOperand = self.operandsStack['operand'].pop()
+                leftType = self.operandsStack['type'].pop()
+        except:
+            pass
         
         operator = self.operatorsStack.pop(0)
 
@@ -101,15 +109,12 @@ class quadruples():
         self.counter += 1;
 
     def generateQuad_if(self):
-        print("********** generateQuad_if")
         exp_type = self.operandsStack['type'].pop()
         result = self.operandsStack['operand'].pop()
 
         if exp_type != 'bool':
 
             exitErrorText = " Error: Type mismatch in " + exp_type + ' ' + result
-            print(self.quadruples)
-            print()
             sys.exit(exitErrorText)
         
         else:
@@ -125,21 +130,18 @@ class quadruples():
         self.counter +=1;
 
     def fillQuad(self, quadNum, result):
-        print("self.quadruples")
-        print(self.quadruples)
-        print("quadNum: ", quadNum)
-        print("result: ", result)
         self.quadruples['result'][quadNum-1] = result
-        print(self.quadruples)
 
     def endQuad(self):
-        print("********** endQuad")
-        end = self.jumpStack.pop(0)
+        end = self.jumpStack.pop()
+        self.fillQuad(end, self.counter)
+
+    def endQuadElse(self):
+        end = self.jumpStack.pop(-2) #pops the penultimate element from jumpstack
         self.fillQuad(end, self.counter)
 
 
     def generateQuad_else(self):
-        print("********** generateQuad_else")
         self.quadruples['operator'].append('GOTO')
         self.quadruples['operand1'].append(None)
         self.quadruples['operand2'].append(None)
@@ -149,19 +151,15 @@ class quadruples():
         self.counter +=1;
         
     def startQuad_while(self):
-        print("######################startQuad_while")
         self.jumpStack.append(self.counter)
 
     def generateQuad_while(self):
-        print("######################generateQuad_while")
         exp_type = self.operandsStack['type'].pop()
         result = self.operandsStack['operand'].pop()
 
         if exp_type != 'bool':
 
             exitErrorText = " Error: Type mismatch in " + exp_type + ' ' + result
-            print(self.quadruples)
-            print()
             sys.exit(exitErrorText)
         
         else:
@@ -176,13 +174,8 @@ class quadruples():
         self.counter +=1;
 
     def endQuad_while(self):
-        print("######################endQuad_while")
-        print(self.jumpStack)
         end = self.jumpStack.pop()
         retrn = self.jumpStack.pop()
-
-        print("*******end: ", end)
-        print("*******retrn: ", retrn)
 
         self.quadruples['operator'].append('GOTO')
         self.quadruples['operand1'].append(None)
@@ -224,16 +217,11 @@ class quadruples():
         controlVar = self.forLoopControlVars.pop()
 
         self.result += 1
-        #maskedResult = 'T' + str(self.result)
-        
 
         self.quadruples['operator'].append('+')
         self.quadruples['operand1'].append(controlVar)
         self.quadruples['operand2'].append(self.forLoopBySteps.pop())
 
-        print('BUUUUGSSSSSSSSSSS')
-        print(str(self.quadruples['operand1'][-1]))
-        print(str(self.quadruples['operand2'][-1]))
         if str(self.quadruples['operand1'][-1])[1] == 2 or str(self.quadruples['operand2'][-1])[1] == 2:
             memType = 'float'
         else:
@@ -280,7 +268,7 @@ class quadruples():
         #maskedResult = 'T' + str(self.result)
 
         self.quadruples['operator'].append('<')
-        self.quadruples['operand1'].append(self.forLoopControlVars[0])
+        self.quadruples['operand1'].append(self.forLoopControlVars[-1])
         self.quadruples['operand2'].append(operand)
         tempMemAddress = self.memory.allocateMem('temporal', 'bool', 1)
 

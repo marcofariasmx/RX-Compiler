@@ -1,0 +1,66 @@
+program bubbleSort;
+//The purpose of this small program is to test find in arrays
+
+vars
+        int idx;
+        int i;
+        int j;
+        int helper;
+        int helper2;
+        int unsortedArray[10];
+
+main()
+{
+
+    //Assign the numbers to the array
+    unsortedArray[1] = 10;
+    unsortedArray[2] = 9;
+    unsortedArray[3] = 8;
+    unsortedArray[4] = 7;
+    unsortedArray[5] = 6;
+    unsortedArray[6] = 1;
+    unsortedArray[7] = 2;
+    unsortedArray[8] = 3;
+    unsortedArray[9] = 4;
+    unsortedArray[10] = 5;
+
+    print("Test unsorted array:", "_nl");
+    for idx = 1 to 11 do{
+        print(unsortedArray[idx], " ");
+    }
+
+    //print( "_nl");
+
+    idx = idx;
+
+    //print("Test unsorted array2:", "_nl");
+    for i = 1 to 11 do{
+        //print(unsortedArray[i], " ");
+        //helper = 10 - i;
+        for j = 1 to 10 - i do{
+            //print("Helper: ", helper, " ");
+            //helper2 = unsortedArray[j];
+            //print( "_nl");
+            //print(unsortedArray[j]);
+            helper2 = unsortedArray[j];
+            //print("Helper2: ", helper2, " ");
+        }
+        //print("_nl", "end");
+    }
+
+    //print( "_nl");
+
+    idx = idx;
+
+    //print("_nl");
+    print("_nl");
+    print("Test sorted array:", "_nl");
+    for idx = 1 to 11 do{
+        print(unsortedArray[idx], " ");
+    }
+
+    print("_nl");
+    print("kestapasandaaa");
+
+
+}

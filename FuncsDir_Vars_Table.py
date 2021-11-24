@@ -21,7 +21,6 @@ class FuncsDir_Vars_Table():
             self.FuncsDirectory['parameters']['paramIsArray'].append(None)
             self.FuncsDirectory['parameters']['paramVarName'].append(None)
 
-        print(self.FuncsDirectory)
     
     def insertVariable(self, varName, varType, ownerFunc, scope, isArray, memAddress, size, dimensions, dimensionsSize):
         self.VarsDirectory['name'].append(varName)
@@ -34,7 +33,6 @@ class FuncsDir_Vars_Table():
         self.VarsDirectory['dimensions'].append(dimensions)
         self.VarsDirectory['dimensionsSize'].append(dimensionsSize)
 
-        print(self.VarsDirectory)
 
     def getVarTypeAndAddress_Global(self, varName):
         #typeAndAddress = []

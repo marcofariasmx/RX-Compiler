@@ -156,8 +156,6 @@ class MyParser(object):
         '''program      :  PROGRAM program_id SEMICOLON globalVars globalFuncs main_keyword LEFTPAREN RIGHTPAREN main_body
         '''
 
-        print("-----p_program------")
-        print(*p)
 
         p[0] = "COMPILED"
 
@@ -165,30 +163,30 @@ class MyParser(object):
         self.insertVars()
 
 
-        #print()
-        print("AQUI VARNAMES!")
-        print(self.varNames)
-        print(self.varType)
-        print('factors: ', self.factors)
+        # #prints for testing purposes
+        # print("VARNAMES")
+        # print(self.varNames)
+        # print(self.varType)
+        # print('factors: ', self.factors)
 
-        print("FuncsDirectory:")
-        print(self.dirTable.FuncsDirectory)
-        print("VarsDirectory:")
-        print(self.dirTable.VarsDirectory)
+        # print("FuncsDirectory:")
+        # print(self.dirTable.FuncsDirectory)
+        # print("VarsDirectory:")
+        # print(self.dirTable.VarsDirectory)
 
-        print("MEMORY: ")
-        print("Global: ")
-        print(self.quads.memory.globalMem)
-        print("Local: ")
-        print(self.quads.memory.localMem)
-        print("Temporal: ")
-        print(self.quads.memory.tempMem)
-        print("Constant: ")
-        print(self.quads.memory.constMem)
+        # print("MEMORY: ")
+        # print("Global: ")
+        # print(self.quads.memory.globalMem)
+        # print("Local: ")
+        # print(self.quads.memory.localMem)
+        # print("Temporal: ")
+        # print(self.quads.memory.tempMem)
+        # print("Constant: ")
+        # print(self.quads.memory.constMem)
 
-        print("QUADRUPLES: ")
-        for idx, operator in enumerate(self.quads.quadruples['operator']):
-            print(idx+1, ', ', operator, ', ', self.quads.quadruples['operand1'][idx], ', ', self.quads.quadruples['operand2'][idx], ', ', self.quads.quadruples['result'][idx])
+        # print("QUADRUPLES: ")
+        # for idx, operator in enumerate(self.quads.quadruples['operator']):
+        #     print(idx+1, ', ', operator, ', ', self.quads.quadruples['operand1'][idx], ', ', self.quads.quadruples['operand2'][idx], ', ', self.quads.quadruples['result'][idx])
 
         # After compilation is done, export obj containing the directory of functions & variables, quadruples and constants
         self.quads.exportOBJ()
@@ -205,6 +203,7 @@ class MyParser(object):
         self.functionsInitDir.append(self.quads.counter)
         self.currScope = 'local'
     
+
     def p_main_body(self, p):
         '''
             main_body   :   body
@@ -213,46 +212,39 @@ class MyParser(object):
         self.dirTable.insertFunction('main', 'void', mainInitDir, None, None)
         self.quads.quadruples['result'][0] = mainInitDir #Redirect for main quadruple
 
+
     def p_expression_program_id(self, p):
         '''
         program_id : ID
         '''
 
-        print("-----p_expression_program_id------")
-        print(*p)
         self.ownerFunc = p[1]
         self.currScope = 'global'
 
         #Add id-name and type program a DirFunc
         self.dirTable.insertFunction(p[1], 'program', 1, None, None)
 
+
     def p_globalVars(self, p):
         '''
             globalVars  :  vars
                         |  empty 
         '''
-        print("-----p_globalVars------")
-        print(*p)
-        #self.currScope = 'global'
-        #*#*#*#*#
         self.insertVars()
+
 
     def p_globaFuncs(self, p):
         '''
             globalFuncs :  functions
                         |  empty
         '''
-        print("-----p_globaFuncs------")
-        print(*p)
-        #self.currScope = 'local'
+
         self.insertVars()
 
     def p_vars(self, p):
         ''' 
             vars    :   VARS vars_body
         '''
-        print("----VARS-----")
-        print(*p)
 
 
     def p_vars_body(self, p):
@@ -260,16 +252,14 @@ class MyParser(object):
             vars_body   :   type_simple multiVar SEMICOLON vars_body
                         |   empty
         '''
-        print("----p_vars_body-----")
-        print(*p)
+
 
     def p_multiVar(self, p):
         ''' 
             multiVar    :   singleVar COMMA multiVar
                         |   singleVar 
         '''
-        print("----p_multiVar-----")
-        print(*p)
+
 
         self.storeDeclaredVars()
 
@@ -277,15 +267,13 @@ class MyParser(object):
         ''' 
             singleVar  :  variable
         '''
-        print("----p_singleVar-----")
-        print(*p)
+
 
     def p_functions(self, p):
         ''' functions    :   FUNC type_simple function_id LEFTPAREN params RIGHTPAREN body_return
                          |   FUNC VOID function_id LEFTPAREN RIGHTPAREN body
         '''
-        print("-----FUNCTIONS------")
-        print(*p)
+
         self.quads.generate_endfunc_quad()
 
         #Add id-name and type program a DirFunc
@@ -297,14 +285,11 @@ class MyParser(object):
             self.ownerFunc = self.functionName
             self.insert_FuncsAsGlobalVars(self.functionName, self.functionType)
 
-            print('self.parameters')
-            print(self.parameters)
             self.paramNameList.clear()
             self.paramTypeList.clear()
             self.paramIsArrayList.clear()
         
         
-    
     def p_function_id(self, p):
         '''
             function_id :   ID
@@ -326,32 +311,30 @@ class MyParser(object):
                         |   CHAR
                         |   BOOL
         '''
-        print("-----TYPE SIMPLE------")
-        print(*p)
+
         self.varType = p[1]
         self.functionType = p[1]
         self.paramType.append(p[1])
         
+
     def p_variable(self, p):
         ''' variable    :   var_matrix
                         |   var_array
                         |   var_id
         '''
-        print("-----VARIABLE------")
-        print(*p)
         
         #Append the variable dimensions
         self.varDimensions.append(self.varDimensionsHelper)
         
+
     def p_var_id(self, p):
         '''
             var_id  : ID
         '''
-        print('----- var_id  : ID------')
-        print(*p)
 
         self.varNames.append(p[1])
         self.varIsArray.append(False)
+
 
     def p_var_matrix(self, p):
         '''
@@ -359,11 +342,13 @@ class MyParser(object):
         '''
         self.varIsArray[-1] = True
 
+
     def p_var_array(self, p):
         '''
             var_array  :   var_id var_dimension
         '''
         self.varIsArray[-1] = True
+
 
     def p_var_dimension(self, p):
         '''
@@ -373,7 +358,12 @@ class MyParser(object):
         #get the addrs dimension from operands
         operand, type = self.quads.operand_pop()
         #convert that addrs to a dim number
-        dimNumber = self.quads.memory.getValFromMemory(operand)
+        if str(operand)[0] != '+': #if it is not pointer type, then append, otherwise append None, unkwown
+            dimNumber = self.quads.memory.getValFromMemory(operand)
+        else: # it is pointer, append back to operands to use it
+            self.quads.operand_push(operand, type)
+            dimNumber = None
+
         self.varDimensionsHelper.append(dimNumber)
     
     def p_params(self, p):
@@ -392,48 +382,41 @@ class MyParser(object):
         '''
         #self.paramType is pushed in type_simple
 
-        print("ENTRO UN PARAMETRO!!!!!")
-        print(self.paramType[0])
-
         self.paramTypeList.append(self.paramType.pop(0))
         self.paramIsArrayList.append(self.varIsArray.pop(0))
         self.paramNameList.append(self.varNames.pop(0))
         
+
     def p_body(self, p):
         ''' 
             body    :   LEFTBRACKET bodyContent RIGHTBRACKET
         '''
-        print("-----p_body------")
-        print(*p)
+
 
     def p_bodyContent(self, p):
         ''' bodyContent :   statute bodyContent
                         |   empty
         '''
-        print("-----p_bodyContent------")
-        print(*p)
+
 
     def p_body_return(self, p):
         ''' 
             body_return :   LEFTBRACKET bodyContent_return RIGHTBRACKET
         '''
-        print("-----p_body_return------")
-        print(*p)
+
 
     def p_bodyContent_return(self, p):
         ''' 
             bodyContent_return  :   statute bodyContent_return
                                 |   empty
         '''
-        print("-----p_bodyContent_return------")
-        print(*p)
+
 
     def p_call(self, p):
         ''' 
             call    :   call_id LEFTPAREN call_params RIGHTPAREN
         '''
-        print("-----p_call------")
-        print(*p)
+
         self.paramNum = 0
         callName = self.callName.pop()
         callMemAddress = self.callMemAddress.pop()
@@ -466,13 +449,8 @@ class MyParser(object):
         for idx, varName in enumerate(self.dirTable.VarsDirectory['name']):
             if varName == p[1] and self.dirTable.VarsDirectory['ownerFunc'][idx] == None:
                 callType = self.dirTable.VarsDirectory['type'][idx]
-                print(self.dirTable.VarsDirectory['type'][idx])
                 callFound = True
                 break
-
-        print(self.dirTable.VarsDirectory['type'])
-        print(self.dirTable.VarsDirectory)
-        print(p[1])
 
         if self.functionName == p[1]:
             callFound = True
@@ -483,16 +461,14 @@ class MyParser(object):
         self.quads.generate_era_quad(p[1])
         self.callName.append(p[1])
         self.callMemAddress.append(memAddress)
-        print('-----p_call_id------')
-        print(*p)
+
 
     def p_call_params(self, p):
         '''
             call_params :   multi_param
                         |   empty
         '''
-        print('-----p_call_params kdfjalkfdjalkfjdsalkfja------')
-        print(*p)
+
         self.quads.generate_GOSUB_quad(self.callMemAddress[-1])
 
     def p_multi_param(self, p):
@@ -505,8 +481,7 @@ class MyParser(object):
         '''
             single_param    :   expression
         '''
-        print('-----single_param------')
-        print(*p)
+
         self.paramNum += 1
         self.quads.generate_params_quads(self.paramNum)
 
@@ -521,8 +496,7 @@ class MyParser(object):
                     |   call SEMICOLON
                     |   returnTrigger
         '''
-        print("-----p_statute------")
-        print(*p)
+
 
     def p_returnTrigger(self, p):
         '''
@@ -540,8 +514,6 @@ class MyParser(object):
         #Push the operator assignment
         if p[2]:
             self.quads.operator_push(p[2])
-        print("-----p_assignment------")
-        print(*p)
 
 
     def p_write(self, p):
@@ -549,8 +521,6 @@ class MyParser(object):
             write   :   PRINT LEFTPAREN write_body RIGHTPAREN SEMICOLON
         '''
 
-        print("-----p_write------")
-        print(*p)
 
     def p_write_body(self, p):
         '''
@@ -563,8 +533,11 @@ class MyParser(object):
             write_single    :   expression
         '''
         varAddress, type = self.quads.operand_pop()
-        print("OPERANDPOOOOOOOOOOOOOP")
-        print( varAddress, type)
+        try: #means it is a composite type pointer, try to pop again
+            varAddress, type = self.quads.operand_pop()
+        except:
+            pass
+
         self.quads.generate_print_quad(varAddress)
 
     def p_read(self, p):
@@ -574,15 +547,10 @@ class MyParser(object):
             read2   :   COMMA read1 
         '''
 
-        print("-----p_read------")
-        print(*p)
 
     def p_if(self, p):
         ''' if          :   IF LEFTPAREN expression_if RIGHTPAREN body_if else_case body_else
         '''
-        
-        print("-----p_if------")
-        print(*p)
 
         if p[1]:
             self.quads.endQuad()
@@ -595,10 +563,8 @@ class MyParser(object):
 
         if p[1]:
             self.quads.generateQuad_else()
-            self.quads.endQuad()
+            self.quads.endQuadElse()
 
-        print("-----p_else_case------####")
-        print(*p)
 
     def p_expression_if(self, p):
         '''
@@ -607,16 +573,12 @@ class MyParser(object):
 
         self.quads.generateQuad_if()
 
-        print("-----p_expression_if------")
-        print(*p)
 
     def p_body_if(self, p):
         '''
             body_if : body
         '''
 
-        print("-----p_body_if------")
-        print(*p)
 
     def p_body_else(self, p):
         '''
@@ -625,15 +587,11 @@ class MyParser(object):
                         
         '''
 
-        print("-----p_body_else------")
-        print(*p)
 
     def p_for(self, p):
         '''for  :   FOR for_id_exists ASSIGNMENT for_expression1 TO for_expression2 by_optional DO body
         '''
 
-        print("-----p_for------")
-        print(*p)
         #Check first if ID already exists in local vars, if exists then assign new value, if not, create a new variable
         self.quads.forLoop_end()
 
@@ -719,27 +677,20 @@ class MyParser(object):
         '''while  :   whileKeyword LEFTPAREN expression endWhileExp body
         '''
 
-        print("-----p_while------")
-        print(*p)
-
         self.quads.endQuad_while()
 
     def p_whileKeyword(self, p):
         '''
             whileKeyword    :   WHILE
         '''
-        print("-----p_whileKeyword------")
-        print(*p)
 
         self.quads.startQuad_while()
+
 
     def p_endWhileExp(self, p):
         '''
             endWhileExp : RIGHTPAREN
         '''
-
-        print("-----p_endWhileExp------")
-        print(*p)
 
         self.quads.generateQuad_while()
 
@@ -748,16 +699,12 @@ class MyParser(object):
             expression2 :   OR expression
                         |   empty
         '''
-        print("-----p_expression------")
-        print(*p)
 
     def p_mili_exp(self, p):
         ''' mili_exp    :   micro_exp mili_exp2
             mili_exp2   :   AND mili_exp
                         |   empty
         '''
-        print("-----p_mili_exp------")
-        print(*p)
 
     def p_micro_exp(self, p):
         ''' micro_exp   :   nano_exp
@@ -771,8 +718,6 @@ class MyParser(object):
         if len(p) >= 3:
             if p[2]:
                 self.quads.operator_push(p[2])
-        print("-----p_micro_exp------")
-        print(*p)
 
     
     def p_nano_exp(self, p):
@@ -783,8 +728,7 @@ class MyParser(object):
         if len(p) >= 3:
             if p[2]:
                 self.quads.operator_push(p[2])
-        print("-----p_nano_exp------")
-        print(*p)
+
     
     def p_term(self,p):
         '''term :   factor
@@ -794,8 +738,6 @@ class MyParser(object):
         if len(p) >= 3:
             if p[2]:
                 self.quads.operator_push(p[2])
-        print("-----p_term------")
-        print(*p)
 
 
     def p_factor(self,p):
@@ -807,8 +749,7 @@ class MyParser(object):
                     |   factor_variable
                     |   factor_call
         '''
-        print("-----p_factor------")
-        print(*p)
+
 
     def p_factor_int(self,p):
         '''
@@ -823,8 +764,7 @@ class MyParser(object):
             self.quads.memory.insertIntoMem(memAddress, p[1])
         
         self.quads.operand_push(memAddress, 'int')
-        print("-----p_factor_int------")
-        print(*p)
+
 
     def p_factor_float(self,p):
         '''
@@ -839,8 +779,7 @@ class MyParser(object):
             self.quads.memory.insertIntoMem(memAddress, p[1])
 
         self.quads.operand_push(memAddress, 'float')
-        print("-----p_factor_float------")
-        print(*p)
+
 
     def p_factor_char(self,p):
         '''
@@ -855,8 +794,7 @@ class MyParser(object):
             self.quads.memory.insertIntoMem(memAddress, p[1])
 
         self.quads.operand_push(memAddress, 'char')
-        print("-----p_factor_char------")
-        print(*p)
+
 
     def p_factor_bool(self,p):
         '''
@@ -865,8 +803,7 @@ class MyParser(object):
         '''
 
         self.quads.operand_push(p[1], 'bool')
-        print("-----p_factor_bool------")
-        print(*p)
+
 
     def p_factor_variable(self,p):
         '''
@@ -877,15 +814,21 @@ class MyParser(object):
         localVarFound = False
         for idx, varName in enumerate(self.declaredVars['name']):
             if varName == self.varNames[0]:
+
+                #varType, memAddress, isArray, dimensions
+                dimensions = self.declaredVars['dimensions'][idx]
+                varType = self.declaredVars['type'][idx]
+                memAddress = self.declaredVars['memAddress'][idx]
+                
+                normalPushType = True
                 if self.declaredVars['isArray'][idx]:
                     #Calculate offset
-                
-                    #if is matrix
-                    dimensions = self.declaredVars['dimensions'][idx]
+                    
+                    #if is matrix 
                     if len(dimensions) > 1:
                         #First Ensure it is within limits
                         if self.varDimensionsHelper[0] > dimensions[0] or self.varDimensionsHelper[0] > dimensions[0]:
-                            exitErrorText = " Error: out of bounds access for: “" + varName + '”'
+                            exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
                             sys.exit(exitErrorText)
 
                         # M[s1][s2] = DirBase(M) + (s1 * d2) + s2 - d2 - 1
@@ -893,30 +836,40 @@ class MyParser(object):
                     
                     #it is array
                     else:
-                        #First Ensure it is within limits
-                        if self.varDimensionsHelper[0] > dimensions[0]:
-                            exitErrorText = " Error: out of bounds access for: “" + varName + '”'
-                            sys.exit(exitErrorText)
-                        
-                        # A[s1] = DirBase(A) + s1 - 1
-                        offset = self.varDimensionsHelper[0] - 1
+                        #First Ensure it is within limits (Comprobar las dimensiones que se están pasando)
+                        if len(self.varDimensionsHelper) > 0:
+                            if self.varDimensionsHelper[0] > dimensions[0]:
+                                exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
+                                sys.exit(exitErrorText)
+                            
+                            # A[s1] = DirBase(A) + s1 - 1
+                            offset = self.varDimensionsHelper[0] - 1
+                        else: #Si no tiene dimensiones ints, entonces se está pasando la direción de una variable, recalcularla como un int
+                            varType, varMemAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[-1])
+                            pointerAddress = '+' + str(memAddress) + str(varMemAddress)
+                            normalPushType = False
+                            #value = self.quads.memory.getValFromMemory(varMemAddress)
+                            offset = 0
                 else:
                     #Default offset is always 1
                     offset = 0
-                self.quads.operand_push(int(self.declaredVars['memAddress'][idx]) + offset, self.declaredVars['type'][idx])
-                #self.varNames.clear()
+                
+                if normalPushType:
+                    self.quads.operand_push(int(memAddress) + offset , varType)
+                else:
+                    self.quads.operand_push(pointerAddress, varType) 
+        
                 self.varNames.pop(0)
+                self.varDimensionsHelper.clear()
                 localVarFound = True
                 break
         
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
-            print('kurikitakaaaaaa')
-            print(self.varNames)
             varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
         if not localVarFound and varType:
-
+            normalPushType = True
             if isArray:
                 #Calculate offset
                 
@@ -932,12 +885,7 @@ class MyParser(object):
                 
                 #it is array
                 else:
-                    #First Ensure it is within limits
-                    print(self.varDimensionsHelper, dimensions)
-                    print(self.quads.quadruples)
-                    print(self.quads.operandsStack)
-                    print(self.varNames)
-                    #Comprobar las dimensiones que se están pasando
+                    #First Ensure it is within limits (Comprobar las dimensiones que se están pasando)
                     if len(self.varDimensionsHelper) > 0:
                         if self.varDimensionsHelper[0] > dimensions[0]:
                             exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
@@ -947,14 +895,18 @@ class MyParser(object):
                         offset = self.varDimensionsHelper[0] - 1
                     else: #Si no tiene dimensiones ints, entonces se está pasando la direción de una variable, recalcularla como un int
                         varType, varMemAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[-1])
-                        print('varmemadddresss:', varMemAddress)
+                        pointerAddress = '+' + str(memAddress) + str(varMemAddress)
+                        normalPushType = False
                         #value = self.quads.memory.getValFromMemory(varMemAddress)
                         offset = 0
             else:
                 #Default offset is always 1
                 offset = 0
             
-            self.quads.operand_push(int(memAddress) + offset , varType)
+            if normalPushType:
+                self.quads.operand_push(int(memAddress) + offset , varType)
+            else:
+                self.quads.operand_push(pointerAddress, varType)  
             #self.varNames.clear()
             self.varNames.pop(0)
             self.varDimensionsHelper.clear()
@@ -964,15 +916,12 @@ class MyParser(object):
             noVarNameErrorText = " Error: variable “" + self.varNames[0] + '” does not exist in current scope or globally'
             sys.exit(noVarNameErrorText)
 
-        print("-----p_factor_variable------")
-        print(*p)
 
     def p_factor_call(self,p):
         '''
             factor_call   :   call
         '''
-        print("-----p_factor_call------")
-        print(*p)
+
 
     # Error rule for syntax errors
     def p_error(self,p):
@@ -982,5 +931,4 @@ class MyParser(object):
     def p_empty(self, p):
         '''empty :'''
         pass
-
 

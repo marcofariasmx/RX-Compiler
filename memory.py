@@ -18,14 +18,9 @@ class memory():
         
         self.globalMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
         self.localMem = localMem().localMem
-        #self.localMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
         self.tempMem = tempMem().tempMem
-        #self.tempMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
         self.constMem = {'int': {'memIndex': [], 'value': []}, 'float': {'memIndex': [], 'value': []}, 'char': {'memIndex': [], 'value': []}, 'bool': {'memIndex': [], 'value': []}, 'pointer': {'memIndex': [], 'value': []}}
-        #self.localMemStack = []
-        #self.tempMemStack = []
-        #self.localMemStack.append(localMem().localMem)
-        #self.tempMemStack.append(tempMem().tempMem)
+
     
     def emptyMem(self):
         self.localMem.clear()

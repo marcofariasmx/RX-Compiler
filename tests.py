@@ -1,10 +1,6 @@
 from memory import memory
 import pickle as pickle
 
-#memory = memory()
-
-#memory.test()
-
 myDicts = pickle.load( open ("OBJ.pkl", "rb") )
 
 #1 Global mem

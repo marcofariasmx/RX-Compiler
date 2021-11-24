@@ -124,7 +124,7 @@ class MyLexer(object):
             tok = lexer.token()
             if not tok: 
                 break
-            print(tok)
+            #print(tok)
 
     # Build the lexer
     def build(self,**kwargs):

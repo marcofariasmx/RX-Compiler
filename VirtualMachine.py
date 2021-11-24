@@ -7,7 +7,7 @@ class VirtualMachine():
     def __init__(self):
 
         #Initialize memory
-        self.memory = memory()
+        #self.memory = memory()
         self.MemStack = []
         self.MemStack.append(memory())
 
@@ -123,6 +123,22 @@ class VirtualMachine():
             memAddress = self.MemStack[-1].allocateMem(scope, type, 1)
             #print('NEW MEM ADDRESS: ', memAddress)
     
+    def ptrProcess(self, pointer):
+
+        if pointer == None:
+            return pointer
+
+        ptr = str(pointer)
+        if ptr[0] == '+':
+            ptr = ptr[1:] #eliminate plus sign
+            ptr1, ptr2 = ptr[:len(ptr)//2], ptr[len(ptr)//2:] #split in half
+
+            #calculate new address
+            ptr2 = self.MemStack[-1].getValFromMemory(int(ptr2))
+            return int(ptr1) + int(ptr2) - 1 # offset
+        else:
+            return pointer
+    
     def processQuads(self):
 
         def num(s):
@@ -138,9 +154,9 @@ class VirtualMachine():
 
         while quadIdx <= numOfQuads:
             operator = self.quadruples['operator'][quadIdx-1]
-            operand1 = self.quadruples['operand1'][quadIdx-1]
-            operand2 = self.quadruples['operand2'][quadIdx-1]
-            result = self.quadruples['result'][quadIdx-1]
+            operand1 = self.ptrProcess(self.quadruples['operand1'][quadIdx-1])
+            operand2 = self.ptrProcess(self.quadruples['operand2'][quadIdx-1])
+            result = self.ptrProcess(self.quadruples['result'][quadIdx-1])
 
             if operator == '=':
                 #if result memBlock doesnt exist, create it first
@@ -326,6 +342,7 @@ class VirtualMachine():
                     if funcName == dictFuncName: #if name matches
                         functionFound = True
                         #Count the number of params and check if matches
+                        #print(self.funcsDict['parameters']['paramType'][idx])
                         if len(self.funcsDict['parameters']['paramType'][idx]) == self.paramCounter:
                             #Verify param type match
                             for idx2, dictParamType in enumerate(self.funcsDict['parameters']['paramType'][idx]):
@@ -375,7 +392,18 @@ class VirtualMachine():
                 #Continue execution in quads loop
             
             elif operator == 'print':
-                print(self.MemStack[-1].getValFromMemory(result))
+                printText = str(self.MemStack[-1].getValFromMemory(result))
+                #Remove quotations
+                if printText[0] == '"':
+                    printText = printText[1:]
+                if printText[-1] == '"':
+                    printText = printText[:-1]
+
+                #newline
+                if printText == '_nl':
+                    print('\n', end='')
+                else:
+                    print(printText, end='')
 
             #Quadruples index
             quadIdx += 1

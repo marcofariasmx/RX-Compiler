@@ -1,0 +1,30 @@
+program findProgram;
+//The purpose of this small program is to test find in arrays
+
+vars 
+//Declare more numbers that will not be used, just for testing purposes
+    int idx;
+
+main()
+{
+
+    vars
+        int Array1[5];
+        int numToFind;
+
+    //Assign the numbers to the array
+    Array1[1] = 10;
+    Array1[2] = 9;
+    Array1[3] = 8;
+    Array1[4] = 7;
+    Array1[5] = 6;
+
+    numToFind = 8;
+
+    //Iterate through the array
+    for idx = 1 to 6 do{
+        print(Array1[idx]);
+
+    }
+
+}

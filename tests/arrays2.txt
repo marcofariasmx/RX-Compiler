@@ -1,0 +1,37 @@
+program arrays2;
+//The purpose of this small program is to test arrays
+
+vars 
+    int num1;
+    int Matrix[2][4];
+    int num2;
+    int Array2[10];
+    int idx;
+
+main()
+{
+
+    vars
+        int Array1[5];
+
+    num1 = 100;
+    Array1[1] = 10;
+    Array1[2] = 9;
+    Array1[3] = 8;
+    Array1[4] = 7;
+    Array1[5] = 6;
+    num2 = 1;
+
+    print(num1, " ", Array1[num2], " ", num2);
+    print("_nl");
+
+    for idx = 1 to 6 do{
+        //print(Array1[idx]);
+
+        if(Array1[idx] == 8){
+            print("Found ", 8, " in array position ", idx);
+        }
+
+    }
+
+}
