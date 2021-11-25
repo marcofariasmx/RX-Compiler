@@ -37,7 +37,7 @@ class MyLexer(object):
             'IF', 'FOR', 'ELSE', 'VARS', 'INT', 'FLOAT', 'CHAR', 'RIGHTSQBRACKET', 'LEFTSQBRACKET', 'MAIN', 'BODY', 'TYPE_SIMPLE',
             'VARIABLE', 'BODY_RETURN', 'PARAMS', 'CALL', 'READ', 'EQUAL', 'FUNC', 'VOID', 'RETURN', 'TO', 'DO', 'BY', 'WHILE', 'OR', 'AND', 'BOOL', 'TRUE', 'FALSE']
 
-    # Regular expressions
+    # Tokens / Regular expressions
 
     t_SEMICOLON = r'\;'
     t_LEFTBRACKET = r'\{'
@@ -66,13 +66,10 @@ class MyLexer(object):
     # A string containing ignored characters (spaces and tabs)
     t_ignore  = ' \t'
 
-
     # Regular expression with some action
 
     # Define an ID
     def t_ID(self,t):
-        #r'[A-za-z]([A-za-z]|[0-9])*'
-        #r'[A-Za-z0-9]([A-Za-z0-9])*'
         r'[A-Za-z]([A-Za-z0-9])*'
         if t.value in self.keywords:
             t.type = self.keywords.get(t.value, 'ID')
@@ -92,8 +89,6 @@ class MyLexer(object):
 
     # Define a variable char
     def t_CTE_CH(self,t):
-        #r'\".*\"'
-        #r"'([A-Za-z]|[0-9])([A-Za-z]|[0-9])*'"
         r'"([A-Za-z]|[0-9]|\ |\?|\+|\-|\*|\_|\-|\:|\,)*"'
         t.value = str(t.value)
         return t

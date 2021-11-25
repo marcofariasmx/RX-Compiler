@@ -25,9 +25,9 @@ main()
     Array1[5] = 6;
     num2 = 1;
 
-    print("Test numbers:", "_nl");
-    print(num1, " ", Array1[num2], " ", num2);
-    print("_nl");
+    //print("Test numbers:", "_nl");
+    //print(num1, " ", Array1[num2], " ", num2);
+    //print("_nl");
 
     numToFind = 8;
 

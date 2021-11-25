@@ -1,0 +1,12 @@
+program simpleOps;
+
+func void prueba(){
+    print("Exito");
+}
+
+main()
+{
+
+    prueba();
+
+}

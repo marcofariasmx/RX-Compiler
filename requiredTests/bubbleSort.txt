@@ -1,5 +1,5 @@
 program bubbleSort;
-//The purpose of this small program is to test find in arrays
+//The purpose of this small program is to test sort in arrays
 
 vars
         int idx;

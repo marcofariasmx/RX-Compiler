@@ -156,7 +156,6 @@ class MyParser(object):
         '''program      :  PROGRAM program_id SEMICOLON globalVars globalFuncs main_keyword LEFTPAREN RIGHTPAREN main_body
         '''
 
-
         p[0] = "COMPILED"
 
         self.ownerFunc = 'main'
@@ -227,7 +226,7 @@ class MyParser(object):
 
     def p_globalVars(self, p):
         '''
-            globalVars  :  vars
+            globalVars  :  vars globalVars
                         |  empty 
         '''
         self.insertVars()
@@ -235,7 +234,7 @@ class MyParser(object):
 
     def p_globaFuncs(self, p):
         '''
-            globalFuncs :  functions
+            globalFuncs :  functions globalFuncs
                         |  empty
         '''
 
