@@ -9,7 +9,31 @@ main()
     numero2 = 20;
     resultado = 0;
 
+    print("For loop 1: ", "_nl");
+
+    for indexF = 1 to 11 do{
+        resultado = resultado + 1;
+        print(indexF,  "_nl");
+    }
+
+    print("Resultado: ", resultado, "_nl");
+
+    resultado = 0;
+
+    print( "_nl", "For loop 2: ", "_nl");
+    
     for indexF = 15 to 25 by 2 do{
+        resultado = resultado + 1;
+        print(indexF,  "_nl");
+    }
+        
+   print("Resultado: ", resultado, "_nl");
+
+   resultado = 0;
+
+    print( "_nl", "For loop 3: ", "_nl");
+    
+    for indexF = 1 to -2 * -2.5 by 1.5 do{
         resultado = resultado + 1;
         print(indexF,  "_nl");
     }
