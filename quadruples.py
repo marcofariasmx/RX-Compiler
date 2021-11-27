@@ -27,8 +27,14 @@ class quadruples():
 
         self.forLoopControlVars = []
         self.forLoopBySteps = []
+
+        self.pointerStack = []
         
         self.result = 0
+
+        ###Insert a 1 as a global constant to use for default by steps in for loop and in offsets
+        self.memAddres_const1 = self.memory.allocateMem('constant', 'int', 1)
+        self.memory.insertIntoMem(self.memAddres_const1, 1)
 
         self.quadruples['operator'].append('GOTO')
         self.quadruples['operand1'].append(None)
@@ -210,9 +216,8 @@ class quadruples():
         if not self.forLoopBySteps: #if custom steps not declared, add default 1
             
             ###Insert a 1 as a global constant to use for default by steps in for loop
-            memAddres = self.memory.allocateMem('constant', 'int', 1)
-            self.memory.insertIntoMem(memAddres, 1)
-            self.forLoopBySteps.append(memAddres)
+            self.memory.insertIntoMem(self.memAddres_const1, 1)
+            self.forLoopBySteps.append(self.memAddres_const1)
 
         controlVar = self.forLoopControlVars.pop()
 
@@ -344,6 +349,48 @@ class quadruples():
 
         self.counter +=1;
 
+    def verifyQuad_Arrays(self, upperLimit):
+
+        print("SE VA A VERIFICAR-----------")
+
+        #Generate verify quad
+        print("BEFORE POP: ", self.operandsStack)
+        #operand, type = self.operand_pop()
+        operand = self.operandsStack['operand'].pop(-2)
+        self.operandsStack['type'].pop(-2)
+
+        self.quadruples['operator'].append('Verif')
+        self.quadruples['operand1'].append(operand)
+        self.quadruples['operand2'].append(1)
+        self.quadruples['result'].append(upperLimit)
+
+        self.counter +=1;
+
+        #Generate offset quad
+
+        self.quadruples['operator'].append('-')
+        self.quadruples['operand1'].append(operand)
+        self.quadruples['operand2'].append(self.memAddres_const1)
+
+        tempMemAddress = self.memory.allocateMem('temporal', 'int', 1)
+        self.quadruples['result'].append(tempMemAddress)
+
+        self.counter +=1;
+
+        #Generate pointer quad
+        operand, type = self.operand_pop()
+
+        self.quadruples['operator'].append('+')
+        self.quadruples['operand1'].append(tempMemAddress)
+        self.quadruples['operand2'].append('!' + str(operand))
+
+        tempMemAddress = self.memory.allocateMem('temporal', 'pointer', 1)
+        self.quadruples['result'].append(tempMemAddress)
+
+        self.operandsStack['operand'].append(tempMemAddress)
+        self.operandsStack['type'].append('int')
+
+        self.counter +=1;
 
     def exportOBJ(self):
 

@@ -1,0 +1,29 @@
+program arrays;
+//The purpose of this small program is to test arrays
+
+//vars 
+//    int num1;
+//    int Array1[5];
+//    int num2;
+
+main()
+{
+    vars 
+        int num1;
+        int Array1[5];
+        int num2;
+
+
+    num1 = 2;
+    Array1[1] = 100;
+    Array1[2] = 90;
+    Array1[3] = 89;
+    Array1[4] = 70;
+    Array1[5] = 60;
+    num2 = 4;
+
+    Array1[num1] = Array1[num1 * 2] + 7;
+
+    print("Array index: ", num1, ", value:  ", Array1[num1]);
+
+}

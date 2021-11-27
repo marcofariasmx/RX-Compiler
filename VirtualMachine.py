@@ -117,27 +117,45 @@ class VirtualMachine():
     
     def createMemBlock_IfNotExists(self, result):
         scope, type, nodeIndex = self.memTranslator(result)
-        try:
-            self.accessMemVal(scope, type, nodeIndex)
-        except:
-            memAddress = self.MemStack[-1].allocateMem(scope, type, 1)
-            #print('NEW MEM ADDRESS: ', memAddress)
+
+        memAddress = 0
+        while memAddress != result:
+            try:
+                self.accessMemVal(scope, type, nodeIndex)
+                #print("acces mem val")
+                memAddress = result
+            except:
+                memAddress = self.MemStack[-1].allocateMem(scope, type, 1)
+                #print('NEW MEM ADDRESS: ', memAddress)
     
-    def ptrProcess(self, pointer):
+    def addresProcess(self, address):
 
-        if pointer == None:
-            return pointer
+        if address == None:
+            return address
 
-        ptr = str(pointer)
-        if ptr[0] == '+':
-            ptr = ptr[1:] #eliminate plus sign
-            ptr1, ptr2 = ptr[:len(ptr)//2], ptr[len(ptr)//2:] #split in half
+        ptr = str(address)
+        if ptr[0] == '!':
+            ptr = ptr[1:] #eliminate ! sign
+            #ptr1, ptr2 = ptr[:len(ptr)//2], ptr[len(ptr)//2:] #split in half
 
             #calculate new address
-            ptr2 = self.MemStack[-1].getValFromMemory(int(ptr2))
-            return int(ptr1) + int(ptr2) - 1 # offset
+            #ptr2 = self.MemStack[-1].getValFromMemory(int(ptr2))
+            return True, int(ptr)
         else:
-            return pointer
+            return False, address
+
+    def ptrProcess(self, pointer):
+        #Check first if it is a pointer type
+        if pointer:
+            try:
+                ptrToCheck = str(pointer)
+                if ptrToCheck[1] == '5':
+                    realVal = self.MemStack[-1].getValFromMemory(pointer)
+                    return int(realVal)
+            except:
+                pass
+        
+        return pointer
     
     def processQuads(self):
 
@@ -156,29 +174,44 @@ class VirtualMachine():
             operator = self.quadruples['operator'][quadIdx-1]
             operand1 = self.ptrProcess(self.quadruples['operand1'][quadIdx-1])
             operand2 = self.ptrProcess(self.quadruples['operand2'][quadIdx-1])
-            result = self.ptrProcess(self.quadruples['result'][quadIdx-1])
 
+            origResult = self.quadruples['result'][quadIdx-1]
+
+            result = self.ptrProcess(self.quadruples['result'][quadIdx-1])
+            
             if operator == '=':
                 #if result memBlock doesnt exist, create it first
+                result = self.ptrProcess(result)
                 self.createMemBlock_IfNotExists(result)
 
                 #Then assign the value
-                valToAssign = self.MemStack[-1].getValFromMemory(operand1)
+                valToAssign = self.MemStack[-1].getValFromMemory(self.ptrProcess(operand1))
                 self.MemStack[-1].insertIntoMem(result, valToAssign)
-                # print(result, valToAssign)
-                # print('localMem')
-                # print(self.MemStack[-1].localMem)
+
+            elif operator == 'Verif':
+                valToCheck = valToAssign = self.MemStack[-1].getValFromMemory(operand1)
+
+                if not (valToCheck >= int(operand2) and valToCheck <= int(result)):
+                    exitErrorText = 'Error: out of bounds call for indexed element' 
+                    sys.exit(exitErrorText)
 
             elif operator == '+':
                 #if result memBlock doesnt exist, create it first
-                self.createMemBlock_IfNotExists(result)
+                self.createMemBlock_IfNotExists(origResult)
+                
+                #Check if it is addressType 
+                isPtr, value = self.addresProcess(operand2)
 
-                #Do the summ and store it in new temp val
+                if isPtr:
+                    val2 = value
+                else:
+                    val2 = self.MemStack[-1].getValFromMemory(operand2)
+                
                 val1 = self.MemStack[-1].getValFromMemory(operand1)
-                val2 = self.MemStack[-1].getValFromMemory(operand2)
-                resultVal = num(val1) + num(val2)
 
-                self.MemStack[-1].insertIntoMem(result, resultVal)
+                #Do the sum and store it in new temp val
+                resultVal = num(val1) + num(val2)
+                self.MemStack[-1].insertIntoMem(origResult, resultVal)
             
             elif operator == '-':
                 #if result memBlock doesnt exist, create it first
@@ -392,7 +425,7 @@ class VirtualMachine():
                 #Continue execution in quads loop
             
             elif operator == 'print':
-                printText = str(self.MemStack[-1].getValFromMemory(result))
+                printText = str(self.MemStack[-1].getValFromMemory(self.ptrProcess(result)))
                 #Remove quotations
                 if printText[0] == '"':
                     printText = printText[1:]

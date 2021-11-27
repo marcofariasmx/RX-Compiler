@@ -1,3 +1,4 @@
+from pickle import PROTO
 from re import S
 import ply.yacc as yacc
 import sys
@@ -38,6 +39,7 @@ class MyParser(object):
         self.varDimensionsHelper = []
         self.dimensionsSize = []
         self.dimensionSizeHelper = []
+        self.upperLimit = []
 
         #Quadruples
         self.operand1 = defaultdict(list)
@@ -324,7 +326,7 @@ class MyParser(object):
         
         #Append the variable dimensions
         self.varDimensions.append(self.varDimensionsHelper)
-        
+  
 
     def p_var_id(self, p):
         '''
@@ -347,7 +349,7 @@ class MyParser(object):
             var_array  :   var_id var_dimension
         '''
         self.varIsArray[-1] = True
-
+        
 
     def p_var_dimension(self, p):
         '''
@@ -359,6 +361,7 @@ class MyParser(object):
         #convert that addrs to a dim number
         if str(operand)[0] != '+': #if it is not pointer type, then append, otherwise append None, unkwown
             dimNumber = self.quads.memory.getValFromMemory(operand)
+            self.quads.operand_push(operand, type)
         else: # it is pointer, append back to operands to use it
             self.quads.operand_push(operand, type)
             dimNumber = None
@@ -513,7 +516,7 @@ class MyParser(object):
         #Push the operator assignment
         if p[2]:
             self.quads.operator_push(p[2])
-
+        
 
     def p_write(self, p):
         '''
@@ -532,10 +535,6 @@ class MyParser(object):
             write_single    :   expression
         '''
         varAddress, type = self.quads.operand_pop()
-        try: #means it is a composite type pointer, try to pop again
-            varAddress, type = self.quads.operand_pop()
-        except:
-            pass
 
         self.quads.generate_print_quad(varAddress)
 
@@ -809,10 +808,10 @@ class MyParser(object):
             factor_variable   :   variable
         '''
         
-        #Check if variable to store exists locally in not yet saved function
+        #Check if variable to store/append exists locally in not yet saved function
         localVarFound = False
         for idx, varName in enumerate(self.declaredVars['name']):
-            if varName == self.varNames[0]:
+            if varName == self.varNames[-1]:
 
                 #varType, memAddress, isArray, dimensions
                 dimensions = self.declaredVars['dimensions'][idx]
@@ -820,48 +819,37 @@ class MyParser(object):
                 memAddress = self.declaredVars['memAddress'][idx]
                 
                 normalPushType = True
-                if self.declaredVars['isArray'][idx]:
-                    #Calculate offset
-                    
+                if self.declaredVars['isArray'][idx]: #Check if it is an array type
+                    print(self.declaredVars)    
+                    #Calculate offset if needed given it is an array type
                     #if is matrix 
                     if len(dimensions) > 1:
-                        #First Ensure it is within limits
-                        if self.varDimensionsHelper[0] > dimensions[0] or self.varDimensionsHelper[0] > dimensions[0]:
-                            exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
-                            sys.exit(exitErrorText)
-
-                        # M[s1][s2] = DirBase(M) + (s1 * d2) + s2 - d2 - 1
-                        offset = (self.varDimensionsHelper[0] * dimensions[1]) + self.varDimensionsHelper[1] - dimensions[1] - 1
+                        #Do something for matrixes
+                        offset = 0
                     
                     #it is array
                     else:
-                        #First Ensure it is within limits (Comprobar las dimensiones que se están pasando)
-                        if len(self.varDimensionsHelper) > 0:
-                            if self.varDimensionsHelper[0] > dimensions[0]:
-                                exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
-                                sys.exit(exitErrorText)
-                            
-                            # A[s1] = DirBase(A) + s1 - 1
-                            offset = self.varDimensionsHelper[0] - 1
-                        else: #Si no tiene dimensiones ints, entonces se está pasando la direción de una variable, recalcularla como un int
-                            varType, varMemAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[-1])
-                            pointerAddress = '+' + str(memAddress) + str(varMemAddress)
-                            normalPushType = False
-                            #value = self.quads.memory.getValFromMemory(varMemAddress)
-                            offset = 0
-                else:
+                        self.upperLimit.append(self.declaredVars['dimensions'][idx])
+                        print("upperLimit: ", self.upperLimit[-1])
+                        
+                        offset = 0
+                        
+
+                else: #it is not an array ype
                     #Default offset is always 1
                     offset = 0
                 
                 if normalPushType:
                     self.quads.operand_push(int(memAddress) + offset , varType)
-                else:
-                    self.quads.operand_push(pointerAddress, varType) 
+                #else:
+                #    self.quads.operand_push(pointerAddress, varType) 
         
-                self.varNames.pop(0)
+                self.varNames.pop()
                 self.varDimensionsHelper.clear()
                 localVarFound = True
                 break
+        
+        ###
         
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
@@ -874,47 +862,39 @@ class MyParser(object):
                 
                 #if is matrix
                 if len(dimensions) > 1:
-                    #First Ensure it is within limits
-                    if self.varDimensionsHelper[0] > dimensions[0] or self.varDimensionsHelper[0] > dimensions[0]:
-                        exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
-                        sys.exit(exitErrorText)
 
-                    # M[s1][s2] = DirBase(M) + (s1 * d2) + s2 - d2 - 1
-                    offset = (self.varDimensionsHelper[0] * dimensions[1]) + self.varDimensionsHelper[1] - dimensions[1] - 1
-                
+                    #Do something for matrixes
+                    offset = 0
+
                 #it is array
                 else:
-                    #First Ensure it is within limits (Comprobar las dimensiones que se están pasando)
-                    if len(self.varDimensionsHelper) > 0:
-                        if self.varDimensionsHelper[0] > dimensions[0]:
-                            exitErrorText = " Error: out of bounds access for: “" + self.varNames[0] + '”'
-                            sys.exit(exitErrorText)
-                        
-                        # A[s1] = DirBase(A) + s1 - 1
-                        offset = self.varDimensionsHelper[0] - 1
-                    else: #Si no tiene dimensiones ints, entonces se está pasando la direción de una variable, recalcularla como un int
-                        varType, varMemAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[-1])
-                        pointerAddress = '+' + str(memAddress) + str(varMemAddress)
-                        normalPushType = False
-                        #value = self.quads.memory.getValFromMemory(varMemAddress)
-                        offset = 0
+
+                    self.upperLimit.append(dimensions)
+                    print("upperLimit2: ", self.upperLimit[-1])
+                    offset = 0
+
             else:
                 #Default offset is always 1
                 offset = 0
             
             if normalPushType:
                 self.quads.operand_push(int(memAddress) + offset , varType)
-            else:
-                self.quads.operand_push(pointerAddress, varType)  
-            #self.varNames.clear()
+
             self.varNames.pop(0)
             self.varDimensionsHelper.clear()
+
         
         #If variable was not found anywhere, throw an error and exit
         elif not localVarFound and not varType:
             noVarNameErrorText = " Error: variable “" + self.varNames[0] + '” does not exist in current scope or globally'
             sys.exit(noVarNameErrorText)
 
+        
+        # 1) verify that the very last var element (dimension) is whitin limits
+        if self.upperLimit:
+            uLim = self.upperLimit.pop()
+            uLim = uLim[0]
+            self.quads.verifyQuad_Arrays(uLim) #(upperLimit) + last appended operand element (var = dimension)
 
     def p_factor_call(self,p):
         '''

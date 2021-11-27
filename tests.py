@@ -15,3 +15,4 @@ for idx, dict in enumerate(myDicts):
 print("QUADRUPLES: ")
 for idx, operator in enumerate(myDicts[4]['operator']):
     print(idx+1, ', ', operator, ', ', myDicts[4]['operand1'][idx], ', ', myDicts[4]['operand2'][idx], ', ', myDicts[4]['result'][idx])
+    

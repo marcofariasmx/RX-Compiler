@@ -16,9 +16,12 @@ func int fibonacci(int fiboNum){
         fibRes2 = fibonacci(fiboNum - 2);
         fibResR = fibRes1 + fibRes2;
         return fibResR;
-    }
+        //return (fibonacci(fiboNum - 1) + fibonacci(fiboNum - 2));
+   }
        
 }
+
+//Agregar un patito aquí que reciba la función
 
 main()
 {
