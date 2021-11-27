@@ -22,14 +22,19 @@ func int fibonacci(int fiboNum){
 }
 
 //Agregar un patito aquí que reciba la función
+func int patito(int numRecibido){
+    return (numRecibido * 2);
+}
 
 main()
 {
-    vars int A, result;
+    vars int A, result, resultPatito;
     A = 10;
 
     result = fibonacci(A);
+    resultPatito = patito(fibonacci(A));
 
-    print("Fibonacci de ", A, "_nl", "Resultado: ", result);
+    print("Fibonacci de ", A, "_nl", "Resultado: ", result, "_nl");
+    print("Resultado de patito: ", resultPatito, "_nl");
 
 }

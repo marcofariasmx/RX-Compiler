@@ -458,7 +458,7 @@ class MyParser(object):
             callFound = True
             callType = self.functionType
 
-        memAddress = self.quads.memory.allocateMem('global', callType, 1)
+        memAddress = self.quads.memory.allocateMem('temporal', callType, 1)
 
         self.quads.generate_era_quad(p[1])
         self.callName.append(p[1])
@@ -642,17 +642,19 @@ class MyParser(object):
         varType = None
         if not localVarFound:
             varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
+
         if not localVarFound and varType:
             #Before pushing to operands stack, validate type is numeric
             if varType == 'int' or varType == 'float':
-                self.quads.operand_push(memAddress, varType) #POTENTIAL ERROR HERE SINCE IT IS PUSHING the name varType[1], analize, also for if
-                self.varNames.clear()
+                self.quads.operand_push(memAddress, varType)
+                self.varNames.pop()
+                self.varIsArray.pop()
             else:
                 exitErrorText = 'Non valid type for for loop first expression: ' + self.varNames[0] + ' of type ' + varType
                 sys.exit(exitErrorText)
         
         #If variable was not found anywhere, store it
-        elif not localVarFound and not varType:
+        if not localVarFound and not varType:
             self.varType = 'float'
             # self.varNames.append() done automatically on "variable"
 
@@ -820,7 +822,6 @@ class MyParser(object):
                 
                 normalPushType = True
                 if self.declaredVars['isArray'][idx]: #Check if it is an array type
-                    print(self.declaredVars)    
                     #Calculate offset if needed given it is an array type
                     #if is matrix 
                     if len(dimensions) > 1:
@@ -830,8 +831,7 @@ class MyParser(object):
                     #it is array
                     else:
                         self.upperLimit.append(self.declaredVars['dimensions'][idx])
-                        print("upperLimit: ", self.upperLimit[-1])
-                        
+
                         offset = 0
                         
 
@@ -854,7 +854,7 @@ class MyParser(object):
         #If variable was not found locally, check if variable to store exists in VarsDirectory that belongs to a global var
         varType = None
         if not localVarFound:
-            varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[0])
+            varType, memAddress, isArray, dimensions = self.dirTable.getVarTypeAndAddress_Global(self.varNames[-1])
         if not localVarFound and varType:
             normalPushType = True
             if isArray:
@@ -870,7 +870,7 @@ class MyParser(object):
                 else:
 
                     self.upperLimit.append(dimensions)
-                    print("upperLimit2: ", self.upperLimit[-1])
+                    
                     offset = 0
 
             else:
@@ -880,7 +880,7 @@ class MyParser(object):
             if normalPushType:
                 self.quads.operand_push(int(memAddress) + offset , varType)
 
-            self.varNames.pop(0)
+            self.varNames.pop()
             self.varDimensionsHelper.clear()
 
         

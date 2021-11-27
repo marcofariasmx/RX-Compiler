@@ -1,23 +1,23 @@
 program bubbleSort;
 //The purpose of this small program is to test sort in arrays
 
-// vars
-//         int idx;
+vars
+         int idx;
 //         int i;
 //         int j;
 //         int helper;
 //         int tempVar;
-//         int unsortedArray[10];
+         int unsortedArray[10];
 
 main()
 {
     vars
-        int idx;
+//        int idx;
         int i;
         int j;
         int helper;
         int tempVar;
-        int unsortedArray[10];
+ //       int unsortedArray[10];
 
     //Assign the numbers to the array
     unsortedArray[1] = 100;
@@ -40,18 +40,13 @@ main()
 
     // Traverse through all array elements
     for i = 1 to 11 do{
- 
-        print("_nl", "idx ", i, " array elem: ", unsortedArray[i]);
-        // Last i elements are already
-        //  in place
+        // Last i elements are already in place
         for j = 1 to (11 - i) do{
   
             // traverse the array from 1 to n-i-1. Swap if the element
             // found is greater than the next element
             if (unsortedArray[j] > unsortedArray[j + 1]) {
-                //print(" j: ", j, ", ");
                 helper = unsortedArray[j];
-                //print(" helper: ", helper );
                 unsortedArray[j] = unsortedArray[j + 1];
                 unsortedArray[j + 1] = helper;
             }
@@ -61,8 +56,8 @@ main()
     print("_nl");
     print("_nl");
     print("Test sorted array:", "_nl");
-    for idx = 1 to 11 do{
-        print(unsortedArray[idx], " ");
+    for idxe = 1 to 11 do{
+        print(unsortedArray[idxe], " ");
     }
 
 }

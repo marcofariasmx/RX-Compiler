@@ -70,13 +70,6 @@ class quadruples():
         leftOperand = self.operandsStack['operand'].pop()
         leftType = self.operandsStack['type'].pop()
 
-        #If one more pop() is available AND it is pointer type, pop it and replace it
-        try:
-            if self.operandsStack['operand'][-1][0] == '+':
-                leftOperand = self.operandsStack['operand'].pop()
-                leftType = self.operandsStack['type'].pop()
-        except:
-            pass
         
         operator = self.operatorsStack.pop(0)
 
@@ -312,7 +305,7 @@ class quadruples():
             self.counter +=1;
 
             #self.operandsStack['operand'].pop(0)
-            self.operandsStack['type'].pop(0)
+            self.operandsStack['type'].pop()
 
     def generate_endfunc_quad(self):
         self.quadruples['operator'].append('ENDFUNC')
@@ -351,11 +344,8 @@ class quadruples():
 
     def verifyQuad_Arrays(self, upperLimit):
 
-        print("SE VA A VERIFICAR-----------")
 
         #Generate verify quad
-        print("BEFORE POP: ", self.operandsStack)
-        #operand, type = self.operand_pop()
         operand = self.operandsStack['operand'].pop(-2)
         self.operandsStack['type'].pop(-2)
 

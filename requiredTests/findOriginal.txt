@@ -4,6 +4,7 @@ program findProgram;
 vars 
 //Declare more numbers that will not be used, just for testing purposes
     int num1;
+    int Matrix[2][4];
     int num2;
     int Array2[10];
     int idx;
@@ -17,41 +18,33 @@ main()
 
     //Assign the numbers to the array
     num1 = 100;
-    //Array1[1] = 10;
-    //Array1[2] = 9;
-    //Array1[3] = 8;
-    //Array1[4] = 7;
-    //Array1[5] = 6;
+    Array1[1] = 10;
+    Array1[2] = 9;
+    Array1[3] = 8;
+    Array1[4] = 7;
+    Array1[5] = 6;
     num2 = 1;
 
-    Array1[1] = 4;
+    // Array1[1] = 4;
 
-    for idx = 2 to 6 do {
-        print("Array1 at ", idx, " equals Array1 at ", (idx - 1), " mas ", idx, "_nl");
-        Array1[idx] = Array1[ (idx - 1) ] + idx;
-    }
+    // for idx = 2 to 6 do {
+    //     Array1[idx] = Array1[ (idx - 1) ] + idx;
+    // }
 
     //print("Test numbers:", "_nl");
     //print(num1, " ", Array1[num2], " ", num2);
     //print("_nl");
 
-    numToFind = 18;
+    numToFind = 8;
 
     //Iterate through the array
     for idx = 1 to 6 do{
         //print(Array1[idx]);
 
         if(Array1[idx] == numToFind){
-            print("Found number ", numToFind, " in array position ", idx, "_nl");
-        }
-        else{
-            print("Result not found", "_nl");
+            print("Found number ", numToFind, " in array position ", idx);
         }
 
-    }
-    
-    for idxe = 1 to 6 do{
-        print(Array1[idxe], " ");
     }
 
 }
